@@ -30,7 +30,7 @@ Console.WriteLine("Mantissa: " + newFloat.MantissaAsBitString + "\n");
 string xmantissa = newFloat.MantissaAsBitString;
 
 Console.WriteLine("First 13 of Python pattern string:");
-var result5 = pythonHelper!.GetStringPatternOfInteger(13)[..13];
+var result5 = pythonHelper!.GetStringPatternOfInteger(13)[..12];
 Console.WriteLine(result5);
 
 Console.WriteLine("Hardcoded pattern:");
@@ -39,44 +39,13 @@ Console.WriteLine(pattern);
 Console.WriteLine();
 Console.WriteLine();
 
-string result = InsertPatternInMantissa(xmantissa, pattern, 5);
-Console.WriteLine(result);
+uint mantissauint = newFloat.GetMantissaAsUInt();
+Console.WriteLine("Uint mantissa of 19.6: " + mantissauint);
 
+Console.WriteLine("Converted back to a string: " + newFloat.GetMantissaAsStringFromUint(mantissauint));
 
-Console.WriteLine(newFloat.SignAsBitString + newFloat.ExponentAsBitString + result);
+var algo = new Algorithm();
 
-var resultfloat = ConvertToFloat(newFloat.SignAsBitString, newFloat.ExponentAsBitString, result);
+var res = algo.ExtendMantissaAndGetStringRepresentation(mantissauint, pattern);
 
-Console.WriteLine(resultfloat);
-
-var y = resultfloat * 13f;
-
-Console.WriteLine(y);
-
-var yfloat = new CustomFloat(y);
-
-Console.WriteLine(yfloat.MantissaAsBitString);
-
-static string InsertPatternInMantissa(string xmantissa, string pattern, int spot)
-{
-    // Create a char array from the mantissa string
-    char[] mantissaChars = xmantissa.ToCharArray();
-
-    // Loop through the pattern and insert it into the mantissa
-    for (int i = 0; i < pattern.Length; i++)
-    {
-        int index = spot + i - 1; // Calculate the index in the mantissa
-        mantissaChars[index] = pattern[i]; // Replace the character at the index
-    }
-
-    // Convert the char array back to a string and return it
-    return new string(mantissaChars);
-}
-
-static float ConvertToFloat(string sign, string exponent, string mantissa)
-{
-    string binary = sign + exponent + mantissa;
-    int intRep = Convert.ToInt32(binary, 2);
-    float floatRep = BitConverter.ToSingle(BitConverter.GetBytes(intRep), 0);
-    return floatRep;
-}
+Console.WriteLine("Extended mantissa as a string: " + res);

@@ -7,5 +7,7 @@
         string SignAsBitString { get; }
 
         string ToBitString();
+        string GetMantissaAsStringFromUint(uint mantissa);
+        uint GetMantissaAsUInt();
     }
 }
