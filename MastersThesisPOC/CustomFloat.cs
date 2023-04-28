@@ -22,6 +22,7 @@
             return mantissa;
         }
 
+
         public string GetMantissaAsStringFromUint(uint mantissa)
         {
             string binaryString = Convert.ToString(mantissa, 2).PadLeft(23, '0');

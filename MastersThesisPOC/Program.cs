@@ -49,3 +49,54 @@ var algo = new Algorithm();
 var res = algo.ExtendMantissaAndGetStringRepresentation(mantissauint, pattern);
 
 Console.WriteLine("Extended mantissa as a string: " + res);
+
+var (res2, nextbit) = algo.InfinitelyReplaceMantissaWithPattern(pattern, res);
+
+Console.WriteLine("Pattern repeated in mantissa: " + res2);
+Console.WriteLine("The next bit would have been:" + nextbit);
+
+var res3 = algo.RemoveExtension(res2, pattern);
+
+Console.WriteLine("Removed Extension: " + res3);
+
+var roundedMantissa = RoundMantissa(res3, nextbit);
+
+Console.WriteLine("Rounded mantissa as a string: " + roundedMantissa);
+
+Console.WriteLine("Uint of rounded mantissa: " + Convert.ToUInt32(roundedMantissa, 2));
+
+
+var result = algo.ConvertToFloat(newFloat.SignAsBitString, newFloat.ExponentAsBitString, roundedMantissa);
+
+Console.WriteLine("New float value with new mantissa:" + result);
+
+var newResult = result * 13;
+
+Console.WriteLine("Float after being multiplied by M (13): " + newResult);
+
+var customNewResult = new CustomFloat(newResult);
+
+Console.WriteLine($"Sign of the result: {customNewResult.SignAsBitString}, Exponent: {customNewResult.ExponentAsBitString}, Mantissa: {customNewResult.MantissaAsBitString}");
+
+Console.WriteLine("The delta of the new result is: " + Math.Abs(floatNumber - result));
+
+static string RoundMantissa(string mantissaString, string nextBit)
+{
+    uint mantissa = Convert.ToUInt32(mantissaString, 2);
+    uint result = mantissa;
+
+    if (nextBit == "1")
+    {
+        result += 1;
+    }
+    else if (nextBit == "0")
+    {
+        // do nothing
+    }
+    else
+    {
+        throw new ArgumentException("nextBit must be either 0 or 1");
+    }
+
+    return Convert.ToString(result, 2).PadLeft(mantissaString.Length, '0');
+}
