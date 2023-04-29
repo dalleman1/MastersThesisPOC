@@ -1,99 +1,59 @@
-﻿using System.Text;
-using System.Text.RegularExpressions;
-
-namespace MastersThesisPOC
+﻿namespace MastersThesisPOC
 {
-    public class Algorithm
+    public class Algorithm : IAlgorithm
     {
-        public string ExtendMantissaAndGetStringRepresentation(uint mantissa, string pattern)
+        private readonly IAlgorithmHelper _algorithmHelper;
+        public Algorithm(IAlgorithmHelper algorithmHelper)
         {
-            // Find the position of the first 1 in the pattern
-            int firstOnePos = pattern.IndexOf('1');
-
-            // If the pattern does not contain a 1, return the original mantissa
-            if (firstOnePos == -1)
-            {
-                throw new Exception("No 1's appear in pattern");
-            }
-
-            // Extend the mantissa with the pattern up until the first 1 + the 1
-            var extension = pattern.Substring(0, firstOnePos + 1);
-            var mantissaString = Convert.ToString(mantissa & 0x7FFFFF, 2).PadLeft(23, '0');
-
-            var result = extension + mantissaString;
-
-            return result;
+            _algorithmHelper = algorithmHelper;
         }
 
-        public string RemoveExtension(string extendedMantissa, string pattern)
+        public (float result, string newMantissa, float delta) RunAlgorithm(string pattern, uint mantissa, int M, float x)
         {
-            int firstOnePos = pattern.IndexOf('1');
+            //Refactor this
+            var newFloat = new CustomFloat(x);
 
-            var extensionLength = pattern.Substring(0, firstOnePos + 1).Length;
+            var res = _algorithmHelper.ExtendMantissaAndGetStringRepresentation(mantissa, pattern);
 
-            return extendedMantissa.Substring(extensionLength);
+            //Console.WriteLine("Extended mantissa as a string: " + res + "\n");
+
+            var (res2, nextbit) = _algorithmHelper.InfinitelyReplaceMantissaWithPattern(pattern, res);
+
+            //Console.WriteLine("Pattern repeated in mantissa: " + res2 + "\n");
+            //Console.WriteLine("The next bit would have been:" + nextbit + "\n");
+
+            var res3 = _algorithmHelper.RemoveExtension(res2, pattern);
+
+            //Console.WriteLine("Removed Extension: " + res3 + "\n");
+
+            var roundedMantissa = _algorithmHelper.RoundMantissa(res3, nextbit);
+
+            //Console.WriteLine("Rounded mantissa as a string: " + roundedMantissa + "\n");
+
+            //Console.WriteLine("Uint of rounded mantissa: " + Convert.ToUInt32(roundedMantissa, 2) + "\n");
+
+            var result = _algorithmHelper.ConvertToFloat(newFloat.SignAsBitString, newFloat.ExponentAsBitString, roundedMantissa);
+
+            //Console.WriteLine("New float value with new mantissa:" + result + "\n");
+
+            var newResult = result * M;
+
+            //Console.WriteLine($"Float after being multiplied by M {M}: " + newResult + "\n");
+
+            var customNewResult = new CustomFloat(newResult);
+
+            //Console.WriteLine($"Sign of the result: {customNewResult.SignAsBitString}, Exponent: {customNewResult.ExponentAsBitString}, Mantissa: {customNewResult.MantissaAsBitString}" + "\n");
+
+            var delta = ComputeDelta(x, result);
+
+            //Console.WriteLine("The delta of the new result is: " + delta + "\n");
+
+            return (result, customNewResult.MantissaAsBitString, delta);
         }
 
-        public string GetExtendedMantissaAsString(string pattern, uint extendedMantissaInput)
+        private float ComputeDelta(float number, float result)
         {
-            int extensionLength = 23 - pattern.IndexOf('1');
-            uint extension = extendedMantissaInput >> (23 - extensionLength);
-            uint extendedMantissa = (extension << 23) | extendedMantissaInput;
-
-            return Convert.ToString(extendedMantissa, 2).PadLeft(32, '0');
-        }
-        public float ConvertToFloat(string sign, string exponent, string mantissa)
-        {
-            string binary = sign + exponent + mantissa;
-            int intRep = Convert.ToInt32(binary, 2);
-            float floatRep = BitConverter.ToSingle(BitConverter.GetBytes(intRep), 0);
-            return floatRep;
-        }
-
-        public string RotateBits(string pattern)
-        {
-            // Get the first bit of the pattern and add it to the end
-            char firstBit = pattern[0];
-            pattern = pattern.Substring(1) + firstBit;
-
-            return pattern;
-        }
-
-        public (string, string) InfinitelyReplaceMantissaWithPattern(string pattern, string extendedMantissaString)
-        {
-            int mantissaLength = extendedMantissaString.Length;
-            int patternLength = pattern.Length;
-            int patternRepeats = (mantissaLength + patternLength - 1) / patternLength;
-
-            string repeatedPattern = string.Concat(Enumerable.Repeat(pattern, patternRepeats));
-            repeatedPattern = repeatedPattern.Substring(0, mantissaLength);
-
-            int remainingBits = mantissaLength - repeatedPattern.Length;
-
-            if (repeatedPattern.Length < mantissaLength)
-            {
-                repeatedPattern += pattern.Substring(0, remainingBits);
-            }
-
-            string nextBit = "0";
-            if (remainingBits > 0)
-            {
-                nextBit = pattern.Substring(remainingBits, 1);
-            }
-            else
-            {
-                int index = repeatedPattern.Length - 1;
-                while (index >= 0 && repeatedPattern[index] == '1')
-                {
-                    index--;
-                }
-                if (index >= 0)
-                {
-                    nextBit = "1";
-                }
-            }
-
-            return (repeatedPattern, nextBit);
+            return Math.Abs(number - result);
         }
     }
 }
