@@ -100,6 +100,7 @@ namespace MastersThesisPOC
             return Convert.ToString(result, 2).PadLeft(mantissaString.Length, '0');
         }
 
+        //Nextbit should be probably atleast 2 patterns to make sure
         public (string, string) InfinitelyReplaceMantissaWithPattern(string pattern, string extendedMantissaString)
         {
             int mantissaLength = extendedMantissaString.Length;
