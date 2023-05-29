@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace MastersThesisPOC
@@ -79,25 +80,54 @@ namespace MastersThesisPOC
             return result;
         }
 
-        public string RoundMantissa(string mantissaString, string nextBit)
+
+        public string RoundMantissa(string mantissaString, string nextBits)
         {
-            uint mantissa = Convert.ToUInt32(mantissaString, 2);
-            uint result = mantissa;
+            string roundedMantissa = mantissaString;
 
-            if (nextBit == "1")
+            if (nextBits.Length >= 20)
             {
-                result += 1;
-            }
-            else if (nextBit == "0")
-            {
-                // do nothing
-            }
-            else
-            {
-                throw new ArgumentException("nextBit must be either 0 or 1");
+                string roundingBits = nextBits.Substring(0, 20); // Consider the first 20 bits for rounding
+
+                if (HasRoundingBit(roundingBits))
+                {
+                    roundedMantissa = IncrementMantissa(mantissaString);
+                }
             }
 
-            return Convert.ToString(result, 2).PadLeft(mantissaString.Length, '0');
+            return roundedMantissa;
+        }
+
+        private bool HasRoundingBit(string roundingBits)
+        {
+            foreach (char bit in roundingBits)
+            {
+                if (bit == '1')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private string IncrementMantissa(string mantissaString)
+        {
+            char[] mantissa = mantissaString.ToCharArray();
+            int index = mantissa.Length - 1;
+
+            while (index >= 0 && mantissa[index] == '1')
+            {
+                mantissa[index] = '0';
+                index--;
+            }
+
+            if (index >= 0)
+            {
+                mantissa[index] = '1';
+            }
+
+            return new string(mantissa);
         }
 
         public (string, string) InfinitelyReplaceMantissaWithPattern(string pattern, string extendedMantissaString)
@@ -107,34 +137,26 @@ namespace MastersThesisPOC
             int patternRepeats = (mantissaLength + patternLength - 1) / patternLength;
 
             string repeatedPattern = string.Concat(Enumerable.Repeat(pattern, patternRepeats));
+            
+
+            int remainingBits = Math.Abs(mantissaLength - repeatedPattern.Length);
+
+            var leftOverBits = repeatedPattern.Substring(mantissaLength, remainingBits);
+
             repeatedPattern = repeatedPattern.Substring(0, mantissaLength);
+            
+            string nextBits = "";
 
-            int remainingBits = mantissaLength - repeatedPattern.Length;
-
-            if (repeatedPattern.Length < mantissaLength)
-            {
-                repeatedPattern += pattern.Substring(0, remainingBits);
-            }
-
-            string nextBit = "0";
             if (remainingBits > 0)
             {
-                nextBit = pattern.Substring(remainingBits, 1);
+                nextBits = leftOverBits + repeatedPattern.Substring(0, 20-leftOverBits.Length);
             }
-            else
+            else if (remainingBits == 0)
             {
-                int index = repeatedPattern.Length - 1;
-                while (index >= 0 && repeatedPattern[index] == '1')
-                {
-                    index--;
-                }
-                if (index >= 0)
-                {
-                    nextBit = "1";
-                }
+                nextBits = repeatedPattern.Substring(0, 20);
             }
 
-            return (repeatedPattern, nextBit);
+            return (repeatedPattern, nextBits);
         }
     }
 }

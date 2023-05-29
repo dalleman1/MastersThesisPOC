@@ -33,15 +33,14 @@ Console.WriteLine("Mantissa: " + newFloat.MantissaAsBitString + "\n");
 
 string xmantissa = newFloat.MantissaAsBitString;
 
-/*
-Console.WriteLine("First 13 of Python pattern string:");
-var result5 = pythonHelper!.GetStringPatternOfInteger(13)[..12];
-Console.WriteLine(result5);
-*/
 
-
-Console.WriteLine("Hardcoded pattern:");
-string pattern = "000100111011";
+//var result5 = pythonHelper!.GetStringPatternOfInteger(13)[..12];
+var result5 = GetStringPatternOfFloat(13.25f)[..12];
+var result6 = GetStringPatternOfInteger(13)[..12];
+Console.WriteLine("Pattern of 13, but I generated it: " + result6);
+Console.WriteLine("Pattern of the number 13: " + "000100111011");
+//string pattern = "000100111011";
+var pattern = result5;
 Console.WriteLine(pattern);
 
 var patternsResult = algoHelper!.FindPatterns(pattern);
@@ -65,4 +64,47 @@ foreach (var Currentpattern in patternsResult)
     var res = algorithm!.RunAlgorithm(Currentpattern, mantissauint, 13, floatNumber);
     Console.WriteLine($"Pattern used: {Currentpattern}");
     Console.WriteLine(res);
+}
+
+
+static string GetStringPatternOfFloat(float input)
+{
+    byte[] fpNumberBytes;
+    uint mantissaFloat;
+    string mantissaFloatBinary;
+
+    using (MemoryStream memoryStream = new MemoryStream())
+    {
+        using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
+        {
+            binaryWriter.Write(1.0f / input);
+            fpNumberBytes = memoryStream.ToArray();
+        }
+    }
+
+    mantissaFloat = BitConverter.ToUInt32(fpNumberBytes, 0) & 0x007FFFFF;
+    mantissaFloatBinary = Convert.ToString(mantissaFloat, 2).PadLeft(23, '0');
+
+    return mantissaFloatBinary;
+}
+
+static string GetStringPatternOfInteger(float input)
+{
+    byte[] fpNumberBytes;
+    uint mantissaInt;
+    string mantissaIntBinary;
+
+    using (MemoryStream memoryStream = new MemoryStream())
+    {
+        using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
+        {
+            binaryWriter.Write(1.0f / input);
+            fpNumberBytes = memoryStream.ToArray();
+        }
+    }
+
+    mantissaInt = BitConverter.ToUInt32(fpNumberBytes, 0) & 0x007FFFFF;
+    mantissaIntBinary = Convert.ToString(mantissaInt, 2).PadLeft(23, '0');
+
+    return mantissaIntBinary;
 }

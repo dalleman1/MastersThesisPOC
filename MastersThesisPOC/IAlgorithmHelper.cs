@@ -8,7 +8,7 @@
         (string, string) InfinitelyReplaceMantissaWithPattern(string pattern, string extendedMantissaString);
         string RemoveExtension(string extendedMantissa, string pattern);
         string RotateBits(string pattern);
-        string RoundMantissa(string mantissaString, string nextBit);
+        string RoundMantissa(string mantissaString, string nextBits);
         List<string> FindPatterns(string pattern);
     }
 }
