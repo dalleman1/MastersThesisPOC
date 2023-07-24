@@ -8,7 +8,7 @@
             _algorithmHelper = algorithmHelper;
         }
 
-        public (float result, string newMantissa, float delta) RunAlgorithm(string pattern, uint mantissa, int M, float x)
+        public (float result, string newMantissa, float delta) RunAlgorithm(string pattern, uint mantissa, float M, float x)
         {
             //Refactor this
             var newFloat = new CustomFloat(x);

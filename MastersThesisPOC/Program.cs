@@ -29,7 +29,7 @@ string xmantissa = newFloat.MantissaAsBitString;
 
 
 //var result5 = pythonHelper!.GetStringPatternOfInteger(13)[..12];
-var result5 = GetStringPatternOfFloat(13.25f)[..12];
+var result5 = GetStringPatternOfFloat(13f)[..12];
 var result6 = GetStringPatternOfInteger(13)[..12];
 Console.WriteLine("Pattern of 13, but I generated it: " + result6);
 Console.WriteLine("Pattern of the number 13: " + "000100111011");
@@ -55,7 +55,7 @@ Console.WriteLine("Converted back to a string: " + newFloat.GetMantissaAsStringF
 
 foreach (var Currentpattern in patternsResult)
 {
-    var res = algorithm!.RunAlgorithm(Currentpattern, mantissauint, 13, floatNumber);
+    var res = algorithm!.RunAlgorithm(Currentpattern, mantissauint, 13f, floatNumber);
     Console.WriteLine($"Pattern used: {Currentpattern}");
     Console.WriteLine(res);
 }
