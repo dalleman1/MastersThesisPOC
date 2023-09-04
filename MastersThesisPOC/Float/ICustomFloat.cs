@@ -1,4 +1,4 @@
-﻿namespace MastersThesisPOC
+﻿namespace MastersThesisPOC.Float
 {
     public interface ICustomFloat
     {

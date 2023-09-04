@@ -1,5 +1,7 @@
 ﻿using IronPython.Hosting;
 using MastersThesisPOC;
+using MastersThesisPOC.Algorithm;
+using MastersThesisPOC.Python;
 using Microsoft.Extensions.DependencyInjection;
 
 //Dependency Injection
@@ -9,6 +11,7 @@ var services = new ServiceCollection();
 services.AddSingleton(engine)
     .AddScoped<IAlgorithmHelper, AlgorithmHelper>()
     .AddScoped<IAlgorithm, Algorithm>()
+    .AddScoped<IProgramInstances, ProgramInstances>()
     .AddScoped<IPythonHelper, PythonHelper>();
 
 var serviceProvider = services.BuildServiceProvider();
@@ -16,7 +19,24 @@ var serviceProvider = services.BuildServiceProvider();
 var pythonHelper = serviceProvider.GetService<IPythonHelper>();
 var algoHelper = serviceProvider.GetService<IAlgorithmHelper>();
 var algorithm = serviceProvider.GetService<IAlgorithm>();
+var instance = serviceProvider.GetRequiredService<IProgramInstances>();
 
+var dict = new Dictionary<float, string>();
+
+var list = new List<float> { 2.2f, 3.4f, 3.21f, 4.59f, 10.0f, 8, 8.54f, 1.78f };
+
+dict.Add(3f, "01");
+dict.Add(5f, "0011");
+dict.Add(7f, "001");
+dict.Add(9f, "000111");
+dict.Add(11f, "0001011101");
+dict.Add(13f, "000100111011");
+
+instance.ComputeBestMWithRounding(dict, list, 4, 20);
+
+instance.ComputeBestMWithNoRounding(dict, list, 4, 0);
+
+/*
 var floatNumber = 19.6f;
 
 var newFloat = new CustomFloat(floatNumber);
@@ -102,3 +122,4 @@ static string GetStringPatternOfInteger(float input)
 
     return mantissaIntBinary;
 }
+*/

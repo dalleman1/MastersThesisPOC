@@ -1,4 +1,4 @@
-﻿namespace MastersThesisPOC
+﻿namespace MastersThesisPOC.Algorithm
 {
     public interface IAlgorithm
     {

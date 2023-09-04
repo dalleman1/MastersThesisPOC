@@ -1,4 +1,6 @@
-﻿using MastersThesisPOC;
+﻿using MastersThesisPOC.Algorithm;
+using MastersThesisPOC.CustomMath;
+using MastersThesisPOC.Float;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MasterThesis.API.Controllers
@@ -9,17 +11,58 @@ namespace MasterThesis.API.Controllers
     {
         private readonly IAlgorithm _algorithm;
         private readonly IAlgorithmHelper _algorithmHelper;
+        private readonly IMathComputer _mathComputer;
 
-        public AlgorithmController(IAlgorithm algorithm, IAlgorithmHelper algorithmHelper)
+        public AlgorithmController(IAlgorithm algorithm, IAlgorithmHelper algorithmHelper, IMathComputer mathComputer)
         {
             _algorithm = algorithm;
             _algorithmHelper = algorithmHelper;
+            _mathComputer = mathComputer;
         }
 
         [HttpGet("/api/health")]
         public ActionResult HealthCheck()
         {
             return Ok();
+        }
+
+        [HttpGet("/api/LaplaceNoise")]
+        public ActionResult<float> LaplaceNoise(float epsilon, float value)
+        {
+            return _mathComputer.AddLaplaceNoise(epsilon, value);
+        }
+
+        [HttpGet("/api/ReplacePattern")]
+        public ActionResult<List<string>> ReplacePattern(string pattern, string mantissa, int index, int nextBitsLength)
+        {
+            var res = _algorithmHelper.ReplacePattern(pattern, mantissa, index, nextBitsLength);
+
+            return Ok(new List<string> { res.Item1, res.Item2 });
+        }
+
+
+        [HttpGet("/api/RoundMantissa")]
+        public ActionResult<string> RoundMantissa(string mantissa, string nextBits)
+        {
+            return _algorithmHelper.RoundMantissaNew(mantissa, nextBits);
+        }
+
+        [HttpGet("/api/32Bit/M")]
+        public ActionResult<string> GetPatternOfMasInt32Bit(int M)
+        {
+            return _algorithmHelper.StringPatternOfM32Bit(M);
+        }
+
+        [HttpGet("/api/64Bit/M")]
+        public ActionResult<string> GetPatternOfMasInt64Bit(int M)
+        {
+            return _algorithmHelper.StringPatternOfM64Bit(M);
+        }
+
+        [HttpGet("/api/RepeatingPatternOfString")]
+        public ActionResult<Dictionary<string,int>> FindRepeatingPatternOfString(string input)
+        {
+            return _algorithmHelper.FindRepeatingPattern(input);
         }
 
         [HttpGet("/api/Algorithm/{number}/{M}")]

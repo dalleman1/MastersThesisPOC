@@ -1,4 +1,4 @@
-﻿namespace MastersThesisPOC
+﻿namespace MastersThesisPOC.Float
 {
     public class CustomFloat : ICustomFloat
     {
@@ -31,12 +31,12 @@
 
         public string ExponentAsBitString
         {
-            get { return Convert.ToString((_bits >> 23) & 0xFF, 2).PadLeft(8, '0'); }
+            get { return Convert.ToString(_bits >> 23 & 0xFF, 2).PadLeft(8, '0'); }
         }
 
         public string SignAsBitString
         {
-            get { return Convert.ToString((_bits >> 31) & 0x1, 2); }
+            get { return Convert.ToString(_bits >> 31 & 0x1, 2); }
         }
         public string ToBitString()
         {

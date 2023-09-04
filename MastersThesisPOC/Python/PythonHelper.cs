@@ -1,4 +1,4 @@
-﻿namespace MastersThesisPOC
+﻿namespace MastersThesisPOC.Python
 {
     public class PythonHelper : IPythonHelper
     {
@@ -7,7 +7,7 @@
         public PythonHelper(Microsoft.Scripting.Hosting.ScriptEngine engine)
         {
             _engine = engine;
-            _scope = _engine.CreateScope();          
+            _scope = _engine.CreateScope();
         }
 
         public string GetStringPatternOfInteger(float input)

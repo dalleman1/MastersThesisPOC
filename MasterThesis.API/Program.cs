@@ -1,5 +1,7 @@
 using IronPython.Hosting;
-using MastersThesisPOC;
+using MastersThesisPOC.Algorithm;
+using MastersThesisPOC.CustomMath;
+using MastersThesisPOC.Python;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +11,7 @@ var engine = Python.CreateEngine();
 builder.Services.AddSingleton(engine)
     .AddScoped<IAlgorithmHelper, AlgorithmHelper>()
     .AddScoped<IAlgorithm, Algorithm>()
+    .AddScoped<IMathComputer, MathComputer>()
     .AddScoped<IPythonHelper, PythonHelper>();
 
 // Configure CORS to allow any origin, method, and header. Adjust this to your needs.

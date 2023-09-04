@@ -1,4 +1,6 @@
-﻿namespace MastersThesisPOC
+﻿using MastersThesisPOC.Float;
+
+namespace MastersThesisPOC.Algorithm
 {
     public class Algorithm : IAlgorithm
     {

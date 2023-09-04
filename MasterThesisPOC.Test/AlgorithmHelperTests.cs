@@ -1,4 +1,4 @@
-﻿using MastersThesisPOC;
+﻿using MastersThesisPOC.Algorithm;
 
 namespace MasterThesisPOC.Test
 {

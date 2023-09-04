@@ -1,4 +1,4 @@
-﻿namespace MastersThesisPOC
+﻿namespace MastersThesisPOC.Python
 {
     public interface IPythonHelper
     {
