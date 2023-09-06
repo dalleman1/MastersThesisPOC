@@ -10,8 +10,8 @@
         string RotateBits(string pattern);
         string RoundMantissa(string mantissaString, string nextBits);
         List<string> FindPatterns(string pattern);
-        string StringPatternOfM32Bit(int M);
-        string StringPatternOfM64Bit(int M);
+        string StringPatternOfM32Bit(float M);
+        string StringPatternOfM64Bit(float M);
         Dictionary<string, int> FindRepeatingPattern(string mantissa);
         (string, string) ReplacePattern(string pattern, string mantissa, int placement, int nextBitsLength);
 

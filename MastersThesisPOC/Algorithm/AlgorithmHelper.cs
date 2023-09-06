@@ -159,7 +159,7 @@ namespace MastersThesisPOC.Algorithm
             return (repeatedPattern, nextBits);
         }
 
-        public string StringPatternOfM32Bit(int M)
+        public string StringPatternOfM32Bit(float M)
         {
             byte[] fpNumberBytes;
 
@@ -178,7 +178,7 @@ namespace MastersThesisPOC.Algorithm
             return mantissaIntBinaryString;
         }
 
-        public string StringPatternOfM64Bit(int M)
+        public string StringPatternOfM64Bit(float M)
         {
             byte[] fpNumberBytes;
 

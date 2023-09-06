@@ -23,18 +23,31 @@ var instance = serviceProvider.GetRequiredService<IProgramInstances>();
 
 var dict = new Dictionary<float, string>();
 
-var list = new List<float> { 2.2f, 3.4f, 3.21f, 4.59f, 10.0f, 8, 8.54f, 1.78f };
-
 dict.Add(3f, "01");
 dict.Add(5f, "0011");
+dict.Add(5.5f, "0111010001");
 dict.Add(7f, "001");
 dict.Add(9f, "000111");
 dict.Add(11f, "0001011101");
 dict.Add(13f, "000100111011");
+dict.Add(13.5f, "001011110110100001");
 
-instance.ComputeBestMWithRounding(dict, list, 4, 20);
+var listOfFloats = instance.GenerateFloats(1000);
 
-instance.ComputeBestMWithNoRounding(dict, list, 4, 0);
+for (int i = 0; i < 20; i++)
+{
+    Console.WriteLine("\n\n");
+    Console.WriteLine("Starting from index: " + i + "\n");
+    var (res, res2) = instance.ComputeBestMWithRounding(dict, listOfFloats, i, 20);
+
+    instance.PrintMPerformance(res, res2);
+}
+
+//var (res,res2) = instance.ComputeBestMWithRounding(dict, listOfFloats, 4, 20);
+
+//instance.PrintMPerformance(res, res2);
+
+//instance.ComputeBestMWithNoRounding(dict, list, 4, 0);
 
 /*
 var floatNumber = 19.6f;

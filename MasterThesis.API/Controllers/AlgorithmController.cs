@@ -48,13 +48,13 @@ namespace MasterThesis.API.Controllers
         }
 
         [HttpGet("/api/32Bit/M")]
-        public ActionResult<string> GetPatternOfMasInt32Bit(int M)
+        public ActionResult<string> GetPatternOfMasInt32Bit(float M)
         {
             return _algorithmHelper.StringPatternOfM32Bit(M);
         }
 
         [HttpGet("/api/64Bit/M")]
-        public ActionResult<string> GetPatternOfMasInt64Bit(int M)
+        public ActionResult<string> GetPatternOfMasInt64Bit(float M)
         {
             return _algorithmHelper.StringPatternOfM64Bit(M);
         }
