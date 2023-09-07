@@ -233,7 +233,7 @@ namespace MastersThesisPOC.Algorithm
             return frequencyMap;
         }
 
-        public (string, string) ReplacePattern(string pattern, string mantissa, int placement, int nextBitsLength)
+        public (string, string) ReplacePattern(string pattern, string mantissa, int placement, int? nextBitsLength)
         {
             // Check if the placement index is within the range of the mantissa
             if (placement < 0 || placement >= mantissa.Length)

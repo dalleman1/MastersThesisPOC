@@ -13,7 +13,7 @@
         string StringPatternOfM32Bit(float M);
         string StringPatternOfM64Bit(float M);
         Dictionary<string, int> FindRepeatingPattern(string mantissa);
-        (string, string) ReplacePattern(string pattern, string mantissa, int placement, int nextBitsLength);
+        (string, string) ReplacePattern(string pattern, string mantissa, int placement, int? nextBitsLength);
 
         string RoundMantissaNew(string mantissa, string nextBits);
     }
