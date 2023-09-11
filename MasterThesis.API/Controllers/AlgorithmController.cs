@@ -27,9 +27,9 @@ namespace MasterThesis.API.Controllers
         }
 
         [HttpGet("/api/LaplaceNoise")]
-        public ActionResult<float> LaplaceNoise(float epsilon, float value)
+        public ActionResult<float> LaplaceNoise(float epsilon)
         {
-            return _mathComputer.AddLaplaceNoise(epsilon, value);
+            return _mathComputer.GenerateLaplaceNoise(epsilon);
         }
 
         [HttpGet("/api/ReplacePattern")]

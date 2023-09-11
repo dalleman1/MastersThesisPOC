@@ -1,12 +1,12 @@
-﻿using IronPython.Hosting;
-using MastersThesisPOC;
+﻿using MastersThesisPOC;
 using MastersThesisPOC.Algorithm;
-using MastersThesisPOC.Python;
+using MastersThesisPOC.CustomMath;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 
 services.AddScoped<IAlgorithmHelper, AlgorithmHelper>()
+    .AddScoped<IMathComputer, MathComputer>()
     .AddScoped<IAlgorithm, Algorithm>()
     .AddScoped<TrailingZerosStrategy>()
     .AddScoped<TrailingOnesStrategy>()
@@ -21,7 +21,19 @@ services.AddScoped<IAlgorithmHelper, AlgorithmHelper>()
 var serviceProvider = services.BuildServiceProvider();
 
 var executer = serviceProvider.GetRequiredService<IServiceExecuter>();
+var mathComputer = serviceProvider.GetRequiredService<IMathComputer>();
 
+float number = 123.456f;
+
+for (int i = 0; i < 10; i++)
+{
+    float modifiedNumber = mathComputer.AddLaplaceNoiseToMantissa(1.0f, number, 8, false);
+
+    Console.WriteLine(modifiedNumber);
+}
+
+
+/*
 var dict = new Dictionary<float, string>();
 
 dict.Add(3f, "01");
@@ -36,15 +48,15 @@ dict.Add(13.5f, "001011110110100001");
 var listOfFloats = executer.GenerateFloats(1000);
 
 
-
-
 for (int i = 0; i < 20; i++)
 {
     Console.WriteLine("\n\n");
     Console.WriteLine("Starting from index: " + i + "\n");
 
-    var (res, res2) = executer.ExecuteWithTrailingOnesWithNoRounding(dict, listOfFloats, i);
+    var (res, res2) = executer.ExecuteWithTrailingZerosWithRounding(dict, listOfFloats, i, 100);
 
-    executer.PrintMPerformance(res, res2, "Ones");
+    executer.PrintMPerformance(res, res2, "zeros");
 }
+
+*/
 
