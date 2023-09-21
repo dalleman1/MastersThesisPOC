@@ -298,5 +298,50 @@ namespace MastersThesisPOC.Algorithm
 
             return newMantissa;
         }
+
+        public string FindRepeatingPatternBinary(float value, int maxIterations = 64)
+        {
+            Dictionary<float, int> seenPositions = new Dictionary<float, int>();
+            StringBuilder fractionalPart = new StringBuilder();
+
+            for (int i = 0; i < maxIterations; i++)
+            {
+                value *= 10;
+                int intPart = (int)value;
+                fractionalPart.Append(intPart);
+                value -= intPart;
+
+                if (seenPositions.ContainsKey(value))
+                {
+                    int start = seenPositions[value];
+                    return fractionalPart.ToString().Substring(start);
+                }
+
+                seenPositions[value] = i;
+            }
+
+            return "";  // If no repeating pattern found within maxIterations
+        }
+
+        private static string GetRepeatingPattern(string s)
+        {
+            for (int length = 1; length <= s.Length / 2; length++)
+            {
+                string pattern = s.Substring(0, length);
+                if (IsRepeatingPattern(s, pattern))
+                    return pattern;
+            }
+            return "";
+        }
+
+        private static bool IsRepeatingPattern(string s, string pattern)
+        {
+            for (int i = 0; i < s.Length - pattern.Length + 1; i += pattern.Length)
+            {
+                if (s.Substring(i, pattern.Length) != pattern)
+                    return false;
+            }
+            return true;
+        }
     }
 }

@@ -11,6 +11,21 @@
             _trailingOnes = trailingOnes;
         }
 
+        public List<float> ComputeBasicCompressedList(float M, string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits)
+        {
+            return _trailingZeros.ComputeBasicCompressedList(M, pattern, numbers, patternStartIndex, amountOfRoundingBits);
+        }
+
+        public List<float> ComputeOriginalNumbersFromCompressedList(float M, List<float> compressedNumbers)
+        {
+            return _trailingZeros.ComputeOriginalNumbersFromCompressedList(M, compressedNumbers);
+        }
+
+        public (Dictionary<float, int>, Dictionary<float, float>) ExecutePrivatizedM(Dictionary<float, string> basePatternDictionary, List<float> numbers, int patternStartIndex, int amountOfRoundingBits, float epsilon)
+        {
+            return _trailingZeros.ComputeUsingPrivateM(basePatternDictionary, numbers, patternStartIndex, amountOfRoundingBits, epsilon);
+        }
+
         public (Dictionary<float, int>, Dictionary<float, float>) ExecuteWithTrailingOnesWithNoRounding(Dictionary<float, string> basePatternDictionary, List<float> numbers, int patternStartIndex)
         {
             return _trailingOnes.ComputeBestMWithNoRounding(basePatternDictionary, numbers, patternStartIndex, null);
@@ -59,6 +74,42 @@
                 Console.WriteLine($"Value of M: {M} | {error}% max error");
             }
         }
+        /// <summary>
+        ///     It starts with the bit at index ii of the first mantissa.
+        ///     It uses the All method to determine if every mantissa in the list has that same bit value at the same position ii.
+        ///     If all mantissas have the same bit at that position, the index ii is added to the sharedIndexes list.
+        /// </summary>
+        /// <param name="numbers"></param>
+        /// <returns></returns>
+        public List<int> CalculateSharedIndexes(List<float> numbers)
+        {
+            List<string> mantissas = numbers.Select(GetMantissaBits).ToList();
 
+            List<int> sharedIndexes = new List<int>();
+
+            foreach (int i in Enumerable.Range(0, 23))
+            {
+                char bit = mantissas[0][i];
+
+                if (mantissas.All(m => m[i] == bit))
+                {
+                    sharedIndexes.Add(i);
+                }
+            }
+
+            return sharedIndexes;
+        }
+
+        // Extract the mantissa bits from a float
+        private string GetMantissaBits(float number)
+        {
+            byte[] bytes = BitConverter.GetBytes(number);
+            uint intRepresentation = BitConverter.ToUInt32(bytes, 0);
+
+            // Get the last 23 bits (mantissa)
+            uint mantissa = intRepresentation & 0x7FFFFF;
+
+            return Convert.ToString(mantissa, 2).PadLeft(23, '0');
+        }
     }
 }

@@ -16,5 +16,6 @@
         (string, string) ReplacePattern(string pattern, string mantissa, int placement, int? nextBitsLength);
 
         string RoundMantissaNew(string mantissa, string nextBits);
+        string FindRepeatingPatternBinary(float value, int maxIterations = 64);
     }
 }

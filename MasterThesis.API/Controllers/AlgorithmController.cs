@@ -59,11 +59,6 @@ namespace MasterThesis.API.Controllers
             return _algorithmHelper.StringPatternOfM64Bit(M);
         }
 
-        [HttpGet("/api/RepeatingPatternOfString")]
-        public ActionResult<Dictionary<string,int>> FindRepeatingPatternOfString(string input)
-        {
-            return _algorithmHelper.FindRepeatingPattern(input);
-        }
 
         [HttpGet("/api/Algorithm/{number}/{M}")]
         public ActionResult<AlgorithmResult> GetAlgorithmResult(float number, float M)

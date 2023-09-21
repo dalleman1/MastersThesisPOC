@@ -41,8 +41,6 @@
             
             var noise = -Math.Sign(u) * (1.0f / epsilon) * (float)Math.Log(1 - 2 * Math.Abs(u));
 
-            Console.WriteLine(noise);
-
             return noise;
         }
     }
