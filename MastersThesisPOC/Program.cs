@@ -1,12 +1,14 @@
 ﻿using MastersThesisPOC;
 using MastersThesisPOC.Algorithm;
 using MastersThesisPOC.CustomMath;
+using MastersThesisPOC.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
 
 services.AddScoped<IAlgorithmHelper, AlgorithmHelper>()
     .AddScoped<IMathComputer, MathComputer>()
+    .AddScoped<ILaplaceNoiseGenerator, LaplaceNoiseGenerator>()
     .AddScoped<IAlgorithm, Algorithm>()
     .AddScoped<TrailingZerosStrategy>()
     .AddScoped<TrailingOnesStrategy>()
@@ -24,7 +26,7 @@ var serviceProvider = services.BuildServiceProvider();
 var executer = serviceProvider.GetRequiredService<IServiceExecuter>();
 var metricsProvider = serviceProvider.GetRequiredService<IMetrics>();
 var algoHelper = serviceProvider.GetRequiredService<IAlgorithmHelper>();
-
+var laplaceNoise = serviceProvider.GetRequiredService<ILaplaceNoiseGenerator>();
 
 
 var dict = new Dictionary<float, string>();
@@ -53,7 +55,7 @@ dict.Add(21f, "100001");
 dict.Add(23f, "01100100001");
 
 
-testDict.Add(63f, "00001");
+testDict.Add(13f, "000100111011");
 
 MTimesTwoPlusOneDict.Add(3f, "01");
 MTimesTwoPlusOneDict.Add(7f, "001");
@@ -66,54 +68,164 @@ MTimesTwoPlusOneDict.Add(511f, "000000001");
 MTimesTwoPlusOneDict.Add(1023f, "0000000001");
 MTimesTwoPlusOneDict.Add(2047f, "00000000001");
 MTimesTwoPlusOneDict.Add(4095f, "000000000001");
+MTimesTwoPlusOneDict.Add(8191f, "0000000000001");
+MTimesTwoPlusOneDict.Add(16383f, "00000000000001");
 
+var listOfFloats = executer.GenerateFloats(10);
 
+var listOfEpsilonsAndSpreads = new ListWithDuplicates();
 
-var listOfFloats = executer.GenerateFloats(2000);
+listOfEpsilonsAndSpreads.Add(1.0f, 1.0f);
+listOfEpsilonsAndSpreads.Add(0.8f, 1.0f);
+listOfEpsilonsAndSpreads.Add(0.5f, 1.0f);
+listOfEpsilonsAndSpreads.Add(0.3f, 1.0f);
+listOfEpsilonsAndSpreads.Add(0.1f, 1.0f);
 
+listOfEpsilonsAndSpreads.Add(1.0f, 0.5f);
+listOfEpsilonsAndSpreads.Add(0.8f, 0.5f);
+listOfEpsilonsAndSpreads.Add(0.5f, 0.5f);
+listOfEpsilonsAndSpreads.Add(0.3f, 0.5f);
+listOfEpsilonsAndSpreads.Add(0.1f, 0.5f);
 
+listOfEpsilonsAndSpreads.Add(1.0f, 0.2f);
+listOfEpsilonsAndSpreads.Add(0.8f, 0.2f);
+listOfEpsilonsAndSpreads.Add(0.5f, 0.2f);
+listOfEpsilonsAndSpreads.Add(0.3f, 0.2f);
+listOfEpsilonsAndSpreads.Add(0.1f, 0.2f);
+
+listOfEpsilonsAndSpreads.Add(1.0f, 0.1f);
+listOfEpsilonsAndSpreads.Add(0.8f, 0.1f);
+listOfEpsilonsAndSpreads.Add(0.5f, 0.1f);
+listOfEpsilonsAndSpreads.Add(0.3f, 0.1f);
+listOfEpsilonsAndSpreads.Add(0.1f, 0.1f);
 
 foreach (var (M, pattern) in testDict)
 {
-    for (int i = 0; i < 8; i++)
+    foreach (var (epsilon, spread) in listOfEpsilonsAndSpreads)
     {
-        Console.WriteLine("\n\n");
-        Console.WriteLine($"Value of M: {M} | Pattern: {pattern}");
-        Console.WriteLine("Starting from index: " + i + "\n");
-
-        //var (res, res2) = executer.ExecuteWithTrailingZerosWithRounding(dict, listOfFloats, i, 100);
-        //var(res, res2) = executer.ExecutePrivatizedM(dict, listOfFloats, i, 100, 20.0f);
-
-        //executer.PrintMPerformance(res, res2, "zeros");
-
-        var newFloats = executer.ComputeBasicCompressedList(M, pattern, listOfFloats, i, 100);
-
-        var result = executer.CalculateSharedIndexes(newFloats);
-
-        var revertedList = executer.ComputeOriginalNumbersFromCompressedList(M, newFloats);
-
-        var averageError = metricsProvider.CalculateAverageErrorPercentDifference(listOfFloats, revertedList);
-
-        Console.WriteLine($"Average Individual Error %: {averageError}\n");
-
-        var (startAverage, endAverage) = metricsProvider.CalculateAverages(listOfFloats, revertedList);
-
-        Console.WriteLine($"Average of starting list: {startAverage}\n");
-        Console.WriteLine($"Average of compressed list: {endAverage}\n");
-
-        foreach (int index in Enumerable.Range(0, 23))
+        for (int i = 3; i < 5; i++)
         {
-            if (result.Contains(index))
-            {
-                Console.ForegroundColor = ConsoleColor.DarkMagenta;
+            Console.WriteLine("\n\n");
+            // Set default color
+            Console.ForegroundColor = ConsoleColor.White;
 
+            Console.Write("Value of M: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(M);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(" | Pattern: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(pattern);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(" | Starting Index: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(i);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("\n");
+
+            var newFloats = executer.ComputeBasicCompressedList(M, pattern, listOfFloats, i, 100);
+
+            var sharedIndexes = executer.CalculateSharedIndexes(newFloats);
+
+            foreach (int index in Enumerable.Range(0, 23))
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                if (sharedIndexes.Contains(index))
+                {
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                }
+
+                Console.Write($"[{index}] ");
+
+                Console.ResetColor(); // Reset text color to default
+            }
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write("Adding Laplacian Noise | Epsilon: ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(epsilon);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write(" | Spread: ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(spread);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("\n");
+
+            var newFloatsWithLaplace = new List<float>();
+
+            foreach (var newFloat in newFloats)
+            {
+                //var noise = laplaceNoise.GenerateNoiseScaled(epsilon, spread, M);
+                var noise = laplaceNoise.GenerateNoise(epsilon, spread);
+                //Console.WriteLine(noise);
+                newFloatsWithLaplace.Add(newFloat + noise);
             }
 
-            Console.Write($"[{index}] ");
+            var newSharedIndexes = executer.CalculateSharedIndexes(newFloatsWithLaplace);
 
-            Console.ResetColor(); // Reset text color to default
+            foreach (int index in Enumerable.Range(0, 23))
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                if (newSharedIndexes.Contains(index))
+                {
+                    Console.ForegroundColor = ConsoleColor.Blue;
+
+                }
+
+                Console.Write($"[{index}] ");
+
+                Console.ResetColor(); // Reset text color to default
+            }
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.White;
+
+            var revertedList = executer.ComputeOriginalNumbersFromCompressedList(M, newFloats);
+
+            var revertedLaplacianList = executer.ComputeOriginalNumbersFromCompressedList(M, newFloatsWithLaplace);
+
+            var averageError = metricsProvider.CalculateAverageErrorPercentDifference(listOfFloats, revertedList);
+
+            var averageErrorLaplace = metricsProvider.CalculateAverageErrorPercentDifference(listOfFloats, revertedLaplacianList);
+
+            var (startAverageLaplace, endAverageLaplace) = metricsProvider.CalculateAverages(listOfFloats, revertedLaplacianList);
+
+            var (startAverage, endAverage) = metricsProvider.CalculateAverages(listOfFloats, revertedList);
+
+            Console.Write($"Average Individual Error %: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(averageError);
+            Console.WriteLine("\n");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            Console.Write($"Average Individual Error % with Laplacian Noise: ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(averageErrorLaplace);
+            Console.WriteLine("\n");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            Console.Write($"Average of starting list: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(startAverage);
+            Console.WriteLine("\n");
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write($"Average of compressed list: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write(endAverage);
+            Console.WriteLine("\n");
+            Console.ForegroundColor = ConsoleColor.White;
+
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Write($"Average of compressed list with Laplacian Noise: ");
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.Write(endAverageLaplace);
+            Console.WriteLine("\n");
+            Console.ForegroundColor = ConsoleColor.White;
+
+
         }
-        Console.WriteLine();
     }
 }
 
