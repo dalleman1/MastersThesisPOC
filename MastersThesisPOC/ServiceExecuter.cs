@@ -11,9 +11,9 @@
             _trailingOnes = trailingOnes;
         }
 
-        public List<float> ComputeBasicCompressedList(float M, string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits)
+        public List<float> ComputeBasicCompressedList(float M, string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits, bool extension)
         {
-            return _trailingZeros.ComputeBasicCompressedList(M, pattern, numbers, patternStartIndex, amountOfRoundingBits);
+            return _trailingZeros.ComputeBasicCompressedList(M, pattern, numbers, patternStartIndex, amountOfRoundingBits, extension);
         }
 
         public List<float> ComputeOriginalNumbersFromCompressedList(float M, List<float> compressedNumbers)

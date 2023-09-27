@@ -179,7 +179,7 @@ namespace MastersThesisPOC
         }
 
 
-        public List<float> ComputeBasicCompressedList(float M, string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits)
+        public List<float> ComputeBasicCompressedList(float M, string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits, bool extension)
         {
             List<float> newListOfNumbers = new List<float>();
 
@@ -187,7 +187,18 @@ namespace MastersThesisPOC
             {
                 var customFloat = new CustomFloat(number);
 
-                var (newMantissa, nextBits) = _algorithmHelper.ReplacePatternWithExtension(pattern, customFloat.MantissaAsBitString, 4, amountOfRoundingBits);
+                string newMantissa, nextBits;
+
+                if (!extension)
+                {
+                    (newMantissa, nextBits) = _algorithmHelper.ReplacePattern(pattern, customFloat.MantissaAsBitString, patternStartIndex, amountOfRoundingBits);
+                }
+                else
+                {
+                    (newMantissa, nextBits) = _algorithmHelper.ReplacePatternWithExtension(pattern, customFloat.MantissaAsBitString, patternStartIndex, amountOfRoundingBits);
+                }
+
+                
 
                 var roundedMantissa = _algorithmHelper.RoundMantissaNew(newMantissa, nextBits);
 

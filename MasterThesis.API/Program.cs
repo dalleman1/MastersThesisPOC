@@ -10,7 +10,6 @@ var engine = Python.CreateEngine();
 
 builder.Services.AddSingleton(engine)
     .AddScoped<IAlgorithmHelper, AlgorithmHelper>()
-    .AddScoped<IAlgorithm, Algorithm>()
     .AddScoped<IMathComputer, MathComputer>()
     .AddScoped<IPythonHelper, PythonHelper>();
 

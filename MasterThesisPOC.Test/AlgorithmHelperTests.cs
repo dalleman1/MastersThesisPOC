@@ -2,6 +2,8 @@
 
 namespace MasterThesisPOC.Test
 {
+
+    /*
     [TestFixture]
     public class AlgorithmHelperTests
     {
@@ -55,4 +57,5 @@ namespace MasterThesisPOC.Test
             Assert.That(roundedMantissa, Is.EqualTo(res));
         }
     }
+    */
 }

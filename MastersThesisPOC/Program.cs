@@ -9,9 +9,9 @@ var services = new ServiceCollection();
 services.AddScoped<IAlgorithmHelper, AlgorithmHelper>()
     .AddScoped<IMathComputer, MathComputer>()
     .AddScoped<ILaplaceNoiseGenerator, LaplaceNoiseGenerator>()
-    .AddScoped<IAlgorithm, Algorithm>()
     .AddScoped<TrailingZerosStrategy>()
     .AddScoped<TrailingOnesStrategy>()
+    .AddScoped<ICsvReader, CsvReader>()
     .AddScoped<IMetrics, Metrics>()
     .AddScoped<IServiceExecuter, ServiceExecuter>(serviceProvider =>
             {
@@ -27,20 +27,10 @@ var executer = serviceProvider.GetRequiredService<IServiceExecuter>();
 var metricsProvider = serviceProvider.GetRequiredService<IMetrics>();
 var algoHelper = serviceProvider.GetRequiredService<IAlgorithmHelper>();
 var laplaceNoise = serviceProvider.GetRequiredService<ILaplaceNoiseGenerator>();
-
+var csvReader = serviceProvider.GetRequiredService<ICsvReader>();
 
 var dict = new Dictionary<float, string>();
-var floatDict = new Dictionary<float, string>();
-var MTimesTwoPlusOneDict = new Dictionary<float, string>();
 var testDict = new Dictionary<float, string>();
-
-floatDict.Add(3.5f, "001");
-floatDict.Add(5.5f, "0111010001");
-floatDict.Add(7.5f, "0001");
-floatDict.Add(8.5f, "11100001");
-floatDict.Add(9.5f, "101011110010100001");
-floatDict.Add(10.5f, "100001");
-floatDict.Add(13.5f, "001011110110100001");
 
 dict.Add(3f, "01");
 dict.Add(5f, "0011");
@@ -54,58 +44,21 @@ dict.Add(19f, "101011110010100001");
 dict.Add(21f, "100001");
 dict.Add(23f, "01100100001");
 
-
-testDict.Add(13f, "000100111011");
-
-MTimesTwoPlusOneDict.Add(3f, "01");
-MTimesTwoPlusOneDict.Add(7f, "001");
-MTimesTwoPlusOneDict.Add(15f, "0001");
-MTimesTwoPlusOneDict.Add(31f, "00001");
-MTimesTwoPlusOneDict.Add(63f, "000001");
-MTimesTwoPlusOneDict.Add(127f, "0000001");
-MTimesTwoPlusOneDict.Add(255f, "00000001");
-MTimesTwoPlusOneDict.Add(511f, "000000001");
-MTimesTwoPlusOneDict.Add(1023f, "0000000001");
-MTimesTwoPlusOneDict.Add(2047f, "00000000001");
-MTimesTwoPlusOneDict.Add(4095f, "000000000001");
-MTimesTwoPlusOneDict.Add(8191f, "0000000000001");
-MTimesTwoPlusOneDict.Add(16383f, "00000000000001");
-
-var listOfFloats = executer.GenerateFloats(2);
-
 var listOfEpsilonsAndSpreads = new ListWithDuplicates();
 
 listOfEpsilonsAndSpreads.Add(1.0f, 1.0f);
-listOfEpsilonsAndSpreads.Add(0.8f, 1.0f);
-listOfEpsilonsAndSpreads.Add(0.5f, 1.0f);
-listOfEpsilonsAndSpreads.Add(0.3f, 1.0f);
-listOfEpsilonsAndSpreads.Add(0.1f, 1.0f);
-
-listOfEpsilonsAndSpreads.Add(1.0f, 0.5f);
-listOfEpsilonsAndSpreads.Add(0.8f, 0.5f);
-listOfEpsilonsAndSpreads.Add(0.5f, 0.5f);
-listOfEpsilonsAndSpreads.Add(0.3f, 0.5f);
-listOfEpsilonsAndSpreads.Add(0.1f, 0.5f);
-
-listOfEpsilonsAndSpreads.Add(1.0f, 0.2f);
-listOfEpsilonsAndSpreads.Add(0.8f, 0.2f);
-listOfEpsilonsAndSpreads.Add(0.5f, 0.2f);
-listOfEpsilonsAndSpreads.Add(0.3f, 0.2f);
-listOfEpsilonsAndSpreads.Add(0.1f, 0.2f);
-
-listOfEpsilonsAndSpreads.Add(1.0f, 0.1f);
-listOfEpsilonsAndSpreads.Add(0.8f, 0.1f);
-listOfEpsilonsAndSpreads.Add(0.5f, 0.1f);
-listOfEpsilonsAndSpreads.Add(0.3f, 0.1f);
-listOfEpsilonsAndSpreads.Add(0.1f, 0.1f);
 
 
+testDict.Add(13f, "000100111011");
+
+
+var temperatureFloats = csvReader.ReadCsvColumn("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
 
 foreach (var (M, pattern) in testDict)
 {
     //foreach (var (epsilon, spread) in listOfEpsilonsAndSpreads)
     //{
-        for (int i = 2; i < 3; i++)
+        for (int i = 0; i < 5; i++)
         {
             Console.WriteLine("\n\n");
             // Set default color
@@ -125,7 +78,7 @@ foreach (var (M, pattern) in testDict)
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine("\n");
 
-            var newFloats = executer.ComputeBasicCompressedList(M, pattern, listOfFloats, i, 100);
+            var newFloats = executer.ComputeBasicCompressedList(M, pattern, temperatureFloats, i, 100, false);
 
             var sharedIndexes = executer.CalculateSharedIndexes(newFloats);
 

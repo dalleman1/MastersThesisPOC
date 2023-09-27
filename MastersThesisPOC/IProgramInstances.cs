@@ -12,7 +12,7 @@
         (Dictionary<float, int>, Dictionary<float, float>) 
             ComputeBestMWithNoRounding(Dictionary<float, string> basePatternDictionary, List<float> numbers, int patternStartIndex, int? amountOfRoundingBits);
 
-        List<float> ComputeBasicCompressedList(float M, string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits);
+        List<float> ComputeBasicCompressedList(float M, string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits, bool extension);
         List<float> ComputeOriginalNumbersFromCompressedList(float M, List<float> compressedNumbers);
     }
 }

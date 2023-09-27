@@ -1,48 +1,8 @@
-﻿using System.Numerics;
-using System.Text;
-using System.Text.RegularExpressions;
-
-namespace MastersThesisPOC.Algorithm
+﻿namespace MastersThesisPOC.Algorithm
 {
     public class AlgorithmHelper : IAlgorithmHelper
     {
-        public string ExtendMantissaAndGetStringRepresentation(uint mantissa, string pattern)
-        {
-            // Find the position of the first 1 in the pattern
-            int firstOnePos = pattern.IndexOf('1');
 
-            // If the pattern does not contain a 1, return the original mantissa
-            if (firstOnePos == -1)
-            {
-                throw new Exception("No 1's appear in pattern");
-            }
-
-            // Extend the mantissa with the pattern up until the first 1 + the 1
-            var extension = pattern.Substring(0, firstOnePos + 1);
-            var mantissaString = Convert.ToString(mantissa & 0x7FFFFF, 2).PadLeft(23, '0');
-
-            var result = extension + mantissaString;
-
-            return result;
-        }
-
-        public string RemoveExtension(string extendedMantissa, string pattern)
-        {
-            int firstOnePos = pattern.IndexOf('1');
-
-            var extensionLength = pattern.Substring(0, firstOnePos + 1).Length;
-
-            return extendedMantissa.Substring(extensionLength);
-        }
-
-        public string GetExtendedMantissaAsString(string pattern, uint extendedMantissaInput)
-        {
-            int extensionLength = 23 - pattern.IndexOf('1');
-            uint extension = extendedMantissaInput >> 23 - extensionLength;
-            uint extendedMantissa = extension << 23 | extendedMantissaInput;
-
-            return Convert.ToString(extendedMantissa, 2).PadLeft(32, '0');
-        }
         public float ConvertToFloat(string sign, string exponent, string mantissa)
         {
             string binary = sign + exponent + mantissa;
@@ -58,105 +18,6 @@ namespace MastersThesisPOC.Algorithm
             pattern = pattern.Substring(1) + firstBit;
 
             return pattern;
-        }
-
-        public List<string> FindPatterns(string pattern)
-        {
-            var result = new List<string>();
-            var currentPattern = pattern;
-
-            // Iterate over the pattern, rotating it on each iteration
-            for (int i = 0; i < pattern.Length - 1; i++)
-            {
-                currentPattern = RotateBits(currentPattern);
-
-                // Check if the rotated pattern matches the specified structure
-                if (currentPattern.StartsWith("0") && currentPattern.Contains("1"))
-                {
-                    result.Add(currentPattern);
-                }
-            }
-
-            return result;
-        }
-
-
-        public string RoundMantissa(string mantissaString, string nextBits)
-        {
-            string roundedMantissa = mantissaString;
-
-            if (nextBits.Length >= 20)
-            {
-                string roundingBits = nextBits.Substring(0, nextBits.Length); // Consider the length of the nextbits
-
-                if (HasRoundingBit(roundingBits))
-                {
-                    roundedMantissa = IncrementMantissa(mantissaString);
-                }
-            }
-
-            return roundedMantissa;
-        }
-
-        private bool HasRoundingBit(string roundingBits)
-        {
-            foreach (char bit in roundingBits)
-            {
-                if (bit == '1')
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private string IncrementMantissa(string mantissaString)
-        {
-            char[] mantissa = mantissaString.ToCharArray();
-            int index = mantissa.Length - 1;
-
-            while (index >= 0 && mantissa[index] == '1')
-            {
-                mantissa[index] = '0';
-                index--;
-            }
-
-            if (index >= 0)
-            {
-                mantissa[index] = '1';
-            }
-
-            return new string(mantissa);
-        }
-
-        public (string, string) InfinitelyReplaceMantissaWithPattern(string pattern, string extendedMantissaString)
-        {
-            int mantissaLength = extendedMantissaString.Length;
-            int patternLength = pattern.Length;
-            int patternRepeats = (mantissaLength + patternLength - 1) / patternLength;
-
-            string repeatedPattern = string.Concat(Enumerable.Repeat(pattern, patternRepeats));
-
-
-            int remainingBits = Math.Abs(mantissaLength - repeatedPattern.Length);
-
-            var leftOverBits = repeatedPattern.Substring(mantissaLength, remainingBits);
-
-            repeatedPattern = repeatedPattern.Substring(0, mantissaLength);
-
-            string nextBits = "";
-
-            if (remainingBits > 0)
-            {
-                nextBits = leftOverBits + repeatedPattern.Substring(0, 20 - leftOverBits.Length);
-            }
-            else if (remainingBits == 0)
-            {
-                nextBits = repeatedPattern.Substring(0, 20);
-            }
-
-            return (repeatedPattern, nextBits);
         }
 
         public string StringPatternOfM32Bit(float M)
@@ -196,41 +57,6 @@ namespace MastersThesisPOC.Algorithm
             var mantissaIntBinaryString = Convert.ToString((long)mantissaInt, 2).PadLeft(52, '0');
 
             return mantissaIntBinaryString;
-        }
-
-        public Dictionary<string, int> FindRepeatingPattern(string mantissa)
-        {
-            Dictionary<string, int> frequencyMap = new Dictionary<string, int>();
-            int length = mantissa.Length;
-
-            for (int start = 0; start < length; start++) // Iterate through starting points
-            {
-                for (int i = 2; i <= (length - start) / 2; i++)  // Iterate through possible pattern lengths
-                {
-                    string pattern = mantissa.Substring(start, i); // Extract a potential pattern
-
-                    if (pattern.Length < 2)
-                        continue; // Skip too short patterns
-
-                    int repeats = 0;
-
-                    // Count the occurrences of the pattern in the string
-                    int index = 0;
-                    while ((index = mantissa.IndexOf(pattern, index)) != -1)
-                    {
-                        repeats++;
-                        index += pattern.Length;
-                    }
-
-                    if (repeats > 1)
-                    {
-                        // Add or update the pattern frequency in the map
-                        frequencyMap[pattern] = repeats;
-                    }
-                }
-            }
-
-            return frequencyMap;
         }
 
         public (string, string) ReplacePattern(string pattern, string mantissa, int placement, int? nextBitsLength)
@@ -279,8 +105,15 @@ namespace MastersThesisPOC.Algorithm
 
             // Extract the segment to prepend
             string prependStr = pattern.Substring(patternStartIndex, indexOfOne - patternStartIndex + 1);
+            Console.WriteLine("Prepend string: " + prependStr);
 
-            string extendedMantissa = prependStr + mantissa;
+            string extendedMantissa = mantissa;
+
+            if (prependStr != "1")
+            {
+                extendedMantissa = prependStr + mantissa;  // Only prepend if prependStr is not just a '1'
+                Console.WriteLine("Extended mantissa : " + extendedMantissa);
+            }
 
             // Deduce placement based on the prependStr length
             int placement = prependStr.Length;
@@ -340,51 +173,6 @@ namespace MastersThesisPOC.Algorithm
             // Else, we keep the mantissa as is
 
             return newMantissa;
-        }
-
-        public string FindRepeatingPatternBinary(float value, int maxIterations = 64)
-        {
-            Dictionary<float, int> seenPositions = new Dictionary<float, int>();
-            StringBuilder fractionalPart = new StringBuilder();
-
-            for (int i = 0; i < maxIterations; i++)
-            {
-                value *= 10;
-                int intPart = (int)value;
-                fractionalPart.Append(intPart);
-                value -= intPart;
-
-                if (seenPositions.ContainsKey(value))
-                {
-                    int start = seenPositions[value];
-                    return fractionalPart.ToString().Substring(start);
-                }
-
-                seenPositions[value] = i;
-            }
-
-            return "";  // If no repeating pattern found within maxIterations
-        }
-
-        private static string GetRepeatingPattern(string s)
-        {
-            for (int length = 1; length <= s.Length / 2; length++)
-            {
-                string pattern = s.Substring(0, length);
-                if (IsRepeatingPattern(s, pattern))
-                    return pattern;
-            }
-            return "";
-        }
-
-        private static bool IsRepeatingPattern(string s, string pattern)
-        {
-            for (int i = 0; i < s.Length - pattern.Length + 1; i += pattern.Length)
-            {
-                if (s.Substring(i, pattern.Length) != pattern)
-                    return false;
-            }
-            return true;
         }
     }
 }
