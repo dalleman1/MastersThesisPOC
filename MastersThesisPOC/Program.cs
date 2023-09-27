@@ -71,7 +71,7 @@ MTimesTwoPlusOneDict.Add(4095f, "000000000001");
 MTimesTwoPlusOneDict.Add(8191f, "0000000000001");
 MTimesTwoPlusOneDict.Add(16383f, "00000000000001");
 
-var listOfFloats = executer.GenerateFloats(10);
+var listOfFloats = executer.GenerateFloats(2);
 
 var listOfEpsilonsAndSpreads = new ListWithDuplicates();
 
@@ -99,11 +99,13 @@ listOfEpsilonsAndSpreads.Add(0.5f, 0.1f);
 listOfEpsilonsAndSpreads.Add(0.3f, 0.1f);
 listOfEpsilonsAndSpreads.Add(0.1f, 0.1f);
 
+
+
 foreach (var (M, pattern) in testDict)
 {
-    foreach (var (epsilon, spread) in listOfEpsilonsAndSpreads)
-    {
-        for (int i = 3; i < 5; i++)
+    //foreach (var (epsilon, spread) in listOfEpsilonsAndSpreads)
+    //{
+        for (int i = 2; i < 3; i++)
         {
             Console.WriteLine("\n\n");
             // Set default color
@@ -139,69 +141,20 @@ foreach (var (M, pattern) in testDict)
 
                 Console.ResetColor(); // Reset text color to default
             }
-            Console.WriteLine();
-            Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("Adding Laplacian Noise | Epsilon: ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write(epsilon);
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(" | Spread: ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write(spread);
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("\n");
 
-            var newFloatsWithLaplace = new List<float>();
-
-            foreach (var newFloat in newFloats)
-            {
-                //var noise = laplaceNoise.GenerateNoiseScaled(epsilon, spread, M);
-                var noise = laplaceNoise.GenerateNoise(epsilon, spread);
-                //Console.WriteLine(noise);
-                newFloatsWithLaplace.Add(newFloat + noise);
-            }
-
-            var newSharedIndexes = executer.CalculateSharedIndexes(newFloatsWithLaplace);
-
-            foreach (int index in Enumerable.Range(0, 23))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                if (newSharedIndexes.Contains(index))
-                {
-                    Console.ForegroundColor = ConsoleColor.Blue;
-
-                }
-
-                Console.Write($"[{index}] ");
-
-                Console.ResetColor(); // Reset text color to default
-            }
             Console.WriteLine();
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.White;
 
+            /*
+            //Delete this after: 
             var revertedList = executer.ComputeOriginalNumbersFromCompressedList(M, newFloats);
-
-            var revertedLaplacianList = executer.ComputeOriginalNumbersFromCompressedList(M, newFloatsWithLaplace);
-
             var averageError = metricsProvider.CalculateAverageErrorPercentDifference(listOfFloats, revertedList);
-
-            var averageErrorLaplace = metricsProvider.CalculateAverageErrorPercentDifference(listOfFloats, revertedLaplacianList);
-
-            var (startAverageLaplace, endAverageLaplace) = metricsProvider.CalculateAverages(listOfFloats, revertedLaplacianList);
-
             var (startAverage, endAverage) = metricsProvider.CalculateAverages(listOfFloats, revertedList);
 
             Console.Write($"Average Individual Error %: ");
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write(averageError);
-            Console.WriteLine("\n");
-            Console.ForegroundColor = ConsoleColor.White;
-
-            Console.Write($"Average Individual Error % with Laplacian Noise: ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write(averageErrorLaplace);
             Console.WriteLine("\n");
             Console.ForegroundColor = ConsoleColor.White;
 
@@ -216,16 +169,93 @@ foreach (var (M, pattern) in testDict)
             Console.Write(endAverage);
             Console.WriteLine("\n");
             Console.ForegroundColor = ConsoleColor.White;
+            */
+            //
+        /*
+        Console.Write("Adding Laplacian Noise | Epsilon: ");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write(epsilon);
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(" | Spread: ");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write(spread);
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.WriteLine("\n");
 
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($"Average of compressed list with Laplacian Noise: ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write(endAverageLaplace);
-            Console.WriteLine("\n");
-            Console.ForegroundColor = ConsoleColor.White;
+        var newFloatsWithLaplace = new List<float>();
 
-
+        foreach (var newFloat in newFloats)
+        {
+            //var noise = laplaceNoise.GenerateNoiseScaled(epsilon, spread, M);
+            var noise = laplaceNoise.GenerateNoise(epsilon, spread);
+            //Console.WriteLine(noise);
+            newFloatsWithLaplace.Add(newFloat + noise);
         }
+
+        var newSharedIndexes = executer.CalculateSharedIndexes(newFloatsWithLaplace);
+
+        foreach (int index in Enumerable.Range(0, 23))
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            if (newSharedIndexes.Contains(index))
+            {
+                Console.ForegroundColor = ConsoleColor.Blue;
+
+            }
+
+            Console.Write($"[{index}] ");
+
+            Console.ResetColor(); // Reset text color to default
+        }
+        Console.WriteLine();
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.White;
+
+        var revertedList = executer.ComputeOriginalNumbersFromCompressedList(M, newFloats);
+
+        var revertedLaplacianList = executer.ComputeOriginalNumbersFromCompressedList(M, newFloatsWithLaplace);
+
+        var averageError = metricsProvider.CalculateAverageErrorPercentDifference(listOfFloats, revertedList);
+
+        var averageErrorLaplace = metricsProvider.CalculateAverageErrorPercentDifference(listOfFloats, revertedLaplacianList);
+
+        var (startAverageLaplace, endAverageLaplace) = metricsProvider.CalculateAverages(listOfFloats, revertedLaplacianList);
+
+        var (startAverage, endAverage) = metricsProvider.CalculateAverages(listOfFloats, revertedList);
+
+        Console.Write($"Average Individual Error %: ");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write(averageError);
+        Console.WriteLine("\n");
+        Console.ForegroundColor = ConsoleColor.White;
+
+        Console.Write($"Average Individual Error % with Laplacian Noise: ");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write(averageErrorLaplace);
+        Console.WriteLine("\n");
+        Console.ForegroundColor = ConsoleColor.White;
+
+        Console.Write($"Average of starting list: ");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write(startAverage);
+        Console.WriteLine("\n");
+
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write($"Average of compressed list: ");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.Write(endAverage);
+        Console.WriteLine("\n");
+        Console.ForegroundColor = ConsoleColor.White;
+
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write($"Average of compressed list with Laplacian Noise: ");
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.Write(endAverageLaplace);
+        Console.WriteLine("\n");
+        Console.ForegroundColor = ConsoleColor.White;
+        */
+        
+        //}
     }
 }
 

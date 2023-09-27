@@ -266,6 +266,49 @@ namespace MastersThesisPOC.Algorithm
             return (newMantissa, nextBits);
         }
 
+        public (string, string) ReplacePatternWithExtension(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength)
+        {
+            // Locate the first '1' after the starting index
+            int indexOfOne = pattern.IndexOf('1', patternStartIndex);
+
+            // If '1' is not found after startIndex, wrap around to the start of the pattern
+            if (indexOfOne == -1)
+            {
+                indexOfOne = pattern.IndexOf('1');
+            }
+
+            // Extract the segment to prepend
+            string prependStr = pattern.Substring(patternStartIndex, indexOfOne - patternStartIndex + 1);
+
+            string extendedMantissa = prependStr + mantissa;
+
+            // Deduce placement based on the prependStr length
+            int placement = prependStr.Length;
+
+            // Replace pattern
+            string newMantissa = extendedMantissa.Substring(0, placement);
+            int patternIndex = (indexOfOne + 1) % pattern.Length;
+
+            for (int i = placement; i < extendedMantissa.Length; i++)
+            {
+                newMantissa += pattern[patternIndex];
+                patternIndex = (patternIndex + 1) % pattern.Length;
+            }
+
+            // Trim to original length
+            newMantissa = newMantissa.Substring(newMantissa.Length - mantissa.Length);
+
+            // Continue pattern for next bits
+            string nextBits = "";
+            for (int i = 0; i < nextBitsLength; i++)
+            {
+                nextBits += pattern[patternIndex];
+                patternIndex = (patternIndex + 1) % pattern.Length;
+            }
+
+            return (newMantissa, nextBits);
+        }
+
         public string RoundMantissaNew(string mantissa, string nextBits)
         {
             // Initialize an empty string to store the new mantissa

@@ -187,7 +187,7 @@ namespace MastersThesisPOC
             {
                 var customFloat = new CustomFloat(number);
 
-                var (newMantissa, nextBits) = _algorithmHelper.ReplacePattern(pattern, customFloat.MantissaAsBitString, patternStartIndex, amountOfRoundingBits);
+                var (newMantissa, nextBits) = _algorithmHelper.ReplacePatternWithExtension(pattern, customFloat.MantissaAsBitString, 4, amountOfRoundingBits);
 
                 var roundedMantissa = _algorithmHelper.RoundMantissaNew(newMantissa, nextBits);
 

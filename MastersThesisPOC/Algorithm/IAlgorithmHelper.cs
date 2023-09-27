@@ -17,5 +17,6 @@
 
         string RoundMantissaNew(string mantissa, string nextBits);
         string FindRepeatingPatternBinary(float value, int maxIterations = 64);
+        (string, string) ReplacePatternWithExtension(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength);
     }
 }
