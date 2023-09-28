@@ -8,6 +8,7 @@
         string StringPatternOfM64Bit(float M);
         (string, string) ReplacePattern(string pattern, string mantissa, int placement, int? nextBitsLength);
         (string, string) ReplacePatternWithExtension(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength);
+        (string, string) ReplacePatternOnce(string pattern, string mantissa, int placement, int? nextBitsLength);
         string RoundMantissaNew(string mantissa, string nextBits);
     }
 }

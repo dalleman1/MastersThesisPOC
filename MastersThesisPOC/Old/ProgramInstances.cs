@@ -2,7 +2,7 @@
 using MastersThesisPOC.CustomMath;
 using MastersThesisPOC.Float;
 
-namespace MastersThesisPOC
+namespace MastersThesisPOC.Old
 {
     public class ProgramInstances : IProgramInstances
     {
@@ -198,7 +198,7 @@ namespace MastersThesisPOC
                     (newMantissa, nextBits) = _algorithmHelper.ReplacePatternWithExtension(pattern, customFloat.MantissaAsBitString, patternStartIndex, amountOfRoundingBits);
                 }
 
-                
+
 
                 var roundedMantissa = _algorithmHelper.RoundMantissaNew(newMantissa, nextBits);
 
