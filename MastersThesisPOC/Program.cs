@@ -44,40 +44,75 @@ testDict.Add(7f, "001");
 testDict.Add(11f, "0001011101");
 testDict.Add(13f, "000100111011");
 */
-testDict.Add(21f, "100001");
 
+//dict.Add(11f, "0001011101");
+//dict.Add(13f, "000100111011");
+testDict.Add(15f, "0001");
 
+// Assuming you've already read in the list:
 var temperatureFloats = csvReader.ReadCsvColumn("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
 
+// Splitting the list into quarters
+int quarter = temperatureFloats.Count / 4;
+var firstQuarter = temperatureFloats.Take(quarter).ToList();
+var secondQuarter = temperatureFloats.Skip(quarter).Take(quarter).ToList();
+var thirdQuarter = temperatureFloats.Skip(2 * quarter).Take(quarter).ToList();
+var fourthQuarter = temperatureFloats.Skip(3 * quarter).ToList();
+
+// Splitting the dataset based on exponent
+var exponent2List = temperatureFloats.Where(x => ExtractExponent(x) == 2).ToList();
+var exponent3List = temperatureFloats.Where(x => ExtractExponent(x) == 3).ToList();
+var exponent4List = temperatureFloats.Where(x => ExtractExponent(x) == 4).ToList();
+var exponent5List = temperatureFloats.Where(x => ExtractExponent(x) == 5).ToList();
+
+List<List<float>> listOfLists = new List<List<float>>() { exponent2List, exponent3List, exponent4List, exponent5List };
+List<List<float>> listOfQuarters = new List<List<float>>() { firstQuarter, secondQuarter, thirdQuarter, fourthQuarter };
+
+// Calculating averages
+double overallAverage = temperatureFloats.Average();
+
 Console.ForegroundColor = ConsoleColor.White;
+Console.WriteLine($"Overall Average: {overallAverage}");
+
+// Displaying the size, max, and min
 Console.Write("Size of the dataset: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.Write(temperatureFloats.Count);
-Console.WriteLine();
+Console.WriteLine(temperatureFloats.Count);
 Console.ForegroundColor = ConsoleColor.White;
 Console.Write("Max value: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.Write(temperatureFloats.Max());
-Console.WriteLine();
+Console.WriteLine(temperatureFloats.Max());
 Console.ForegroundColor = ConsoleColor.White;
 Console.Write("Min value: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.Write(temperatureFloats.Min());
+Console.WriteLine(temperatureFloats.Min());
 Console.ForegroundColor = ConsoleColor.White;
 
 
-foreach (var (M, pattern) in testDict)
-{
-    RunUsingExtension(M, pattern, temperatureFloats, 1, 100);
 
-    for (int i = 0; i < 15; i++)
+foreach (var q in listOfLists)
+{
+    foreach (var (M, pattern) in testDict)
     {
-        //RunUsingReplaceOnce(M, pattern, temperatureFloats, i, 100);
-        //RunDefault(M, pattern, temperatureFloats, i, 100);
+        RunUsingExtension(M, pattern, q, 1, 100);
+
+        for (int i = 0; i < 15; i++)
+        {
+            //RunUsingReplaceOnce(M, pattern, temperatureFloats, i, 100);
+            //RunDefault(M, pattern, temperatureFloats, i, 100);
+        }
     }
 }
 
 
+// Function to extract the exponent from a float
+int ExtractExponent(float value)
+{
+    byte[] bytes = BitConverter.GetBytes(value);
+    int intRepresentation = BitConverter.ToInt32(bytes, 0);
+    int exponentPart = (intRepresentation >> 23) & 0xFF;  // Extract the 8-bit exponent
+    return exponentPart - 127;  // Return the effective exponent
+}
 
 
 void RunDefault(float M, string pattern, List<float> floats, int i, int nextBits)
