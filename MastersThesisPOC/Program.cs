@@ -34,11 +34,11 @@ dict.Add(17f, "11100001");
 dict.Add(19f, "101011110010100001");
 dict.Add(21f, "100001");
 dict.Add(23f, "01100100001");
-
+/*
 var listOfEpsilonsAndSpreads = new ListWithDuplicates();
 
 listOfEpsilonsAndSpreads.Add(1.0f, 1.0f);
-
+*/
 /*
 testDict.Add(7f, "001");
 testDict.Add(11f, "0001011101");
@@ -47,10 +47,12 @@ testDict.Add(13f, "000100111011");
 
 //dict.Add(11f, "0001011101");
 //dict.Add(13f, "000100111011");
-testDict.Add(15f, "0001");
+testDict.Add(9f, "000111");
 
 // Assuming you've already read in the list:
 var temperatureFloats = csvReader.ReadCsvColumn("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
+var humidityFloats = csvReader.ReadCsvColumnHumidity("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
+
 
 // Splitting the list into quarters
 int quarter = temperatureFloats.Count / 4;
@@ -65,11 +67,40 @@ var exponent3List = temperatureFloats.Where(x => ExtractExponent(x) == 3).ToList
 var exponent4List = temperatureFloats.Where(x => ExtractExponent(x) == 4).ToList();
 var exponent5List = temperatureFloats.Where(x => ExtractExponent(x) == 5).ToList();
 
-List<List<float>> listOfLists = new List<List<float>>() { exponent2List, exponent3List, exponent4List, exponent5List };
-List<List<float>> listOfQuarters = new List<List<float>>() { firstQuarter, secondQuarter, thirdQuarter, fourthQuarter };
+// Splitting the dataset based on exponent
+var humidityexponentList0 = humidityFloats.Where(x => ExtractExponent(x) == 0).ToList();
+var humidityexponentList1 = humidityFloats.Where(x => ExtractExponent(x) == 1).ToList();
+var humidityexponentList2 = humidityFloats.Where(x => ExtractExponent(x) == 2).ToList();
+var humidityexponentList3 = humidityFloats.Where(x => ExtractExponent(x) == 3).ToList();
+var humidityexponentList4 = humidityFloats.Where(x => ExtractExponent(x) == 4).ToList();
+var humidityexponentList5 = humidityFloats.Where(x => ExtractExponent(x) == 5).ToList();
+var humidityexponentList6 = humidityFloats.Where(x => ExtractExponent(x) == 6).ToList();
+
+/*  
+ * Humidity:
+Console.WriteLine(humidityexponentList0.Count);
+Console.WriteLine(humidityexponentList1.Count);
+Console.WriteLine(humidityexponentList2.Count);
+Console.WriteLine(humidityexponentList3.Count);
+Console.WriteLine(humidityexponentList4.Count);
+Console.WriteLine(humidityexponentList5.Count);
+Console.WriteLine(humidityexponentList6.Count);
+*/
+
+
+//Temperature:
+Console.WriteLine(exponent2List.Count);
+Console.WriteLine(exponent3List.Count);
+Console.WriteLine(exponent4List.Count);
+Console.WriteLine(exponent5List.Count);
+
+List<List<float>> listOfListsTemperature = new List<List<float>>() { exponent2List, exponent3List, exponent4List, exponent5List };
+List<List<float>> listOfListsHumidity = new List<List<float>>() { humidityexponentList0, humidityexponentList1, humidityexponentList2, humidityexponentList3, humidityexponentList4, humidityexponentList5, humidityexponentList6};
+
+
 
 // Calculating averages
-double overallAverage = temperatureFloats.Average();
+double overallAverage = humidityFloats.Average();
 
 Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine($"Overall Average: {overallAverage}");
@@ -77,24 +108,24 @@ Console.WriteLine($"Overall Average: {overallAverage}");
 // Displaying the size, max, and min
 Console.Write("Size of the dataset: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(temperatureFloats.Count);
+Console.WriteLine(humidityFloats.Count);
 Console.ForegroundColor = ConsoleColor.White;
 Console.Write("Max value: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(temperatureFloats.Max());
+Console.WriteLine(humidityFloats.Max());
 Console.ForegroundColor = ConsoleColor.White;
 Console.Write("Min value: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(temperatureFloats.Min());
+Console.WriteLine(humidityFloats.Min());
 Console.ForegroundColor = ConsoleColor.White;
 
 
 
-foreach (var q in listOfLists)
+foreach (var q in listOfListsHumidity)
 {
     foreach (var (M, pattern) in testDict)
     {
-        RunUsingExtension(M, pattern, q, 1, 100);
+        RunUsingExtension(M, pattern, q, 4, 100);
 
         for (int i = 0; i < 15; i++)
         {
@@ -214,6 +245,18 @@ void RunUsingExtension(float M, string pattern, List<float> floats, int patternS
         Console.Write($"[{index}] ");
 
         Console.ResetColor(); // Reset text color to default
+    }
+
+    for (int i = 0; i < 15; i++)
+    {
+        var res = resultsFromExtension.Where(x => ExtractExponent(x) == i).ToList();
+
+        if (res.Count != 0)
+        {
+            Console.WriteLine($"\n\nNumber of new floats in exponent {i}: {res.Count}");
+        }
+
+        
     }
 
     Console.WriteLine();
