@@ -100,7 +100,7 @@ List<List<float>> listOfListsHumidity = new List<List<float>>() { humidityexpone
 
 
 // Calculating averages
-double overallAverage = humidityFloats.Average();
+double overallAverage = temperatureFloats.Average();
 
 Console.ForegroundColor = ConsoleColor.White;
 Console.WriteLine($"Overall Average: {overallAverage}");
@@ -108,32 +108,36 @@ Console.WriteLine($"Overall Average: {overallAverage}");
 // Displaying the size, max, and min
 Console.Write("Size of the dataset: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(humidityFloats.Count);
+Console.WriteLine(temperatureFloats.Count);
 Console.ForegroundColor = ConsoleColor.White;
 Console.Write("Max value: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(humidityFloats.Max());
+Console.WriteLine(temperatureFloats.Max());
 Console.ForegroundColor = ConsoleColor.White;
 Console.Write("Min value: ");
 Console.ForegroundColor = ConsoleColor.Yellow;
-Console.WriteLine(humidityFloats.Min());
+Console.WriteLine(temperatureFloats.Min());
 Console.ForegroundColor = ConsoleColor.White;
 
+var resultFromProgram = new List<float>();
 
-
-foreach (var q in listOfListsHumidity)
+foreach (var q in listOfListsTemperature)
 {
     foreach (var (M, pattern) in testDict)
     {
-        RunUsingExtension(M, pattern, q, 4, 100);
+        resultFromProgram = RunUsingExtension(M, pattern, q, 0, 100);
 
         for (int i = 0; i < 15; i++)
         {
             //RunUsingReplaceOnce(M, pattern, temperatureFloats, i, 100);
             //RunDefault(M, pattern, temperatureFloats, i, 100);
         }
+
+        AddLaplaceNoise(resultFromProgram, 1.0, 0.1, M);
     }
 }
+
+
 
 
 // Function to extract the exponent from a float
@@ -146,7 +150,42 @@ int ExtractExponent(float value)
 }
 
 
-void RunDefault(float M, string pattern, List<float> floats, int i, int nextBits)
+void AddLaplaceNoise(List<float> floats, double epsilon, double deltaF, float M)
+{
+    var noisyList = new List<float>();
+
+    foreach (var value in floats)
+    {
+        var res = laplaceNoise.GenerateNoiseCenteredConsideringExponent(value, epsilon, deltaF);
+        noisyList.Add(res);
+    }
+
+    var sharedIndexes = compressionMechanism.CalculateSharedIndexes(noisyList);
+
+    Console.WriteLine("Added Laplace noise: \n");
+
+    foreach (int index in Enumerable.Range(0, 23))
+    {
+        Console.ForegroundColor = ConsoleColor.Green;
+        if (sharedIndexes.Contains(index))
+        {
+            Console.ForegroundColor = ConsoleColor.Blue;
+        }
+
+        Console.Write($"[{index}] ");
+
+        Console.ResetColor(); // Reset text color to default
+    }
+
+    Console.ForegroundColor = ConsoleColor.White;
+    Console.Write($"\n\nAverage of Laplacian List: ");
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.Write(noisyList.Average() / M);
+    Console.WriteLine("\n");
+    Console.ForegroundColor = ConsoleColor.White;
+}
+
+List<float> RunDefault(float M, string pattern, List<float> floats, int i, int nextBits)
 {
     Console.WriteLine("\n\n");
 
@@ -209,9 +248,11 @@ void RunDefault(float M, string pattern, List<float> floats, int i, int nextBits
     Console.Write(endAverage);
     Console.WriteLine("\n");
     Console.ForegroundColor = ConsoleColor.White;
+
+    return newFloats;
 }
 
-void RunUsingExtension(float M, string pattern, List<float> floats, int patternStartIndex, int nextBits)
+List<float> RunUsingExtension(float M, string pattern, List<float> floats, int patternStartIndex, int nextBits)
 {
     Console.WriteLine("\n\n");
     Console.ForegroundColor = ConsoleColor.White;
@@ -284,9 +325,11 @@ void RunUsingExtension(float M, string pattern, List<float> floats, int patternS
     Console.Write(endAverage);
     Console.WriteLine("\n");
     Console.ForegroundColor = ConsoleColor.White;
+
+    return resultsFromExtension;
 }
 
-void RunUsingReplaceOnce(float M, string pattern, List<float> floats, int patternStartIndex, int nextBits)
+List<float> RunUsingReplaceOnce(float M, string pattern, List<float> floats, int patternStartIndex, int nextBits)
 {
     Console.WriteLine("\n\n");
     Console.ForegroundColor = ConsoleColor.White;
@@ -347,5 +390,7 @@ void RunUsingReplaceOnce(float M, string pattern, List<float> floats, int patter
     Console.Write(endAverage);
     Console.WriteLine("\n");
     Console.ForegroundColor = ConsoleColor.White;
+
+    return resultsFromExtension;
 }
 
