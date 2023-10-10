@@ -8,6 +8,8 @@ namespace MastersThesisPOC.CustomMath
         float GenerateNoiseScaled(double epsilon, double deltaF, double scale, double mu = 0);
         float GenerateNoiseCentered(float centerValue, double epsilon, double deltaF);
         float GenerateNoiseCenteredConsideringExponent(float centerValue, double epsilon, double deltaF);
+        float GenerateWith99PercentCertaintyNoiseCentered(float centerValue, double epsilon, double deltaF);
+        float GenerateLaplaceNoiseTest(float epsilon, float scale);
     }
 
     public class LaplaceNoiseGenerator : ILaplaceNoiseGenerator
@@ -44,7 +46,54 @@ namespace MastersThesisPOC.CustomMath
         {
             var b = deltaF / epsilon;
             double u = GetRandomDouble() - 0.5;  // center around zero.
-            return centerValue + (float)(-b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u)));
+            var res = (float)(centerValue - b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u)));
+            return res;
+        }
+
+        public float GenerateWith99PercentCertaintyNoiseCentered(float centerValue, double epsilon, double deltaF)
+        {
+            var b = deltaF / epsilon;
+
+            // 1. Calculate Boundaries for the Noise
+            float lowerBoundary = MathF.Pow(2, (int)MathF.Log2(centerValue) - 1);
+            float upperBoundary = MathF.Pow(2, (int)MathF.Log2(centerValue));
+
+            float maxNoiseUpper = upperBoundary - centerValue;
+            float maxNoiseLower = centerValue - lowerBoundary;
+
+            // 2. Calculate the Noise Range for 99% Probability
+            double noiseRangeUpper = b * Math.Log(50); // F^-1(0.99) for Laplace CDF
+            double noiseRangeLower = -b * Math.Log(50); // F^-1(0.01) for Laplace CDF
+
+            // Adjust noise range to ensure it doesn't exceed our calculated boundaries
+            noiseRangeUpper = Math.Min(noiseRangeUpper, maxNoiseUpper);
+            noiseRangeLower = Math.Max(noiseRangeLower, -maxNoiseLower);
+
+
+            // Ensure noise range does not exceed boundaries
+            if (noiseRangeUpper > maxNoiseUpper)
+            {
+                noiseRangeUpper = maxNoiseUpper;
+            }
+            if (noiseRangeLower < -maxNoiseLower)
+            {
+                noiseRangeLower = -maxNoiseLower;
+            }
+
+            // Ensure noiseRangeLower is less than or equal to noiseRangeUpper
+            if (noiseRangeLower > noiseRangeUpper)
+            {
+                var temp = noiseRangeLower;
+                noiseRangeLower = noiseRangeUpper;
+                noiseRangeUpper = temp;
+            }
+            // 3. Add the Noise
+            double u = GetRandomDouble() - 0.5;  // center around zero.
+            double noise = -b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u));
+            // Ensure noise doesn't exceed the range
+            noise = Math.Clamp(noise, noiseRangeLower, noiseRangeUpper);
+
+            return centerValue + (float)noise;
         }
 
         public float GenerateNoiseCenteredConsideringExponent(float centerValue, double epsilon, double deltaF)
@@ -72,6 +121,47 @@ namespace MastersThesisPOC.CustomMath
             //var res = centerValue + (float)(-b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u)));
             var res = (float)(centerValue - b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u)));
             return res;
+        }
+
+        private readonly Random random = new Random();
+
+        // Laplace Probability Density Function
+        private float LaplacePDF(float x, float scale)
+        {
+            return (1f / (2f * scale)) * (float)Math.Exp(-Math.Abs(x) / scale);
+        }
+
+        // Laplace Cumulative Distribution Function
+        private float LaplaceCDF(float x, float scale)
+        {
+            if (x < 0)
+            {
+                return 0.5f * (float)Math.Exp(x / scale);
+            }
+            else
+            {
+                return 1f - 0.5f * (float)Math.Exp(-x / scale);
+            }
+        }
+
+        // Inverse Laplace CDF
+        private float InverseLaplaceCDF(float p, float scale)
+        {
+            if (p <= 0.5f)
+            {
+                return scale * (float)Math.Log(2f * p);
+            }
+            else
+            {
+                return -scale * (float)Math.Log(2f * (1f - p));
+            }
+        }
+
+        // Generate Laplace noise
+        public float GenerateLaplaceNoiseTest(float epsilon, float scale)
+        {
+            float p = (float)random.NextDouble();  // Uniform random number between 0 and 1
+            return InverseLaplaceCDF(p, scale / epsilon);
         }
     }
 }

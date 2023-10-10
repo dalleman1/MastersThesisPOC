@@ -164,6 +164,75 @@
             return (newMantissa, nextBits);
         }
 
+        public (string, string) ReplacePatternWithExtensionOnce(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength)
+        {
+            // Check if patternStartIndex is out of range
+            if (patternStartIndex < 0 || patternStartIndex >= pattern.Length)
+            {
+                patternStartIndex = 0; // Reset to 0
+            }
+
+            // Locate the first '1' after the starting index
+            int indexOfOne = pattern.IndexOf('1', patternStartIndex);
+
+            // If '1' is not found after startIndex, wrap around to the start of the pattern
+            if (indexOfOne == -1)
+            {
+                indexOfOne = pattern.IndexOf('1');
+            }
+
+            // Extract the segment to prepend
+            string prependStr = pattern.Substring(patternStartIndex, indexOfOne - patternStartIndex + 1);
+
+            while (prependStr.Length > 4 && patternStartIndex < pattern.Length)
+            {
+                patternStartIndex += 1;
+                indexOfOne = pattern.IndexOf('1', patternStartIndex);
+                if (indexOfOne == -1)
+                {
+                    indexOfOne = pattern.IndexOf('1');
+                }
+                prependStr = pattern.Substring(patternStartIndex, indexOfOne - patternStartIndex + 1);
+            }
+
+            string extendedMantissa = mantissa;
+
+            if (prependStr != "1")
+            {
+                extendedMantissa = prependStr + mantissa;  // Only prepend if prependStr is not just a '1'
+            }
+
+            // Deduce placement based on the prependStr length
+            int placement = prependStr.Length;
+
+            // Replace pattern ONCE
+            string newMantissa = extendedMantissa.Substring(0, placement);
+            int patternIndex = (indexOfOne + 1) % pattern.Length;
+
+            for (int i = placement; i < placement + pattern.Length && i < extendedMantissa.Length; i++)
+            {
+                newMantissa += pattern[patternIndex];
+                patternIndex = (patternIndex + 1) % pattern.Length;
+            }
+
+            // Continue with original mantissa (without pattern replacement) after one pattern replacement
+            newMantissa += extendedMantissa.Substring(newMantissa.Length);
+
+            // Trim to original length
+            newMantissa = newMantissa.Substring(newMantissa.Length - mantissa.Length);
+
+            // Continue pattern for next bits
+            string nextBits = "";
+            for (int i = 0; i < nextBitsLength; i++)
+            {
+                nextBits += pattern[patternIndex];
+                patternIndex = (patternIndex + 1) % pattern.Length;
+            }
+
+            return (newMantissa, nextBits);
+        }
+
+
         public (string, string) ReplacePatternOnce(string pattern, string mantissa, int placement, int? nextBitsLength)
         {
             // Check if the placement index is within the range of the mantissa
