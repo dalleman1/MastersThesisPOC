@@ -11,5 +11,6 @@
         (string, string) ReplacePatternWithExtensionOnce(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength);
         (string, string) ReplacePatternOnce(string pattern, string mantissa, int placement, int? nextBitsLength);
         string RoundMantissaNew(string mantissa, string nextBits);
+        public (string, string) ReplacePatternTestMethod(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength);
     }
 }

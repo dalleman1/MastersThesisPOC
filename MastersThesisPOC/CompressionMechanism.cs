@@ -36,25 +36,86 @@ namespace MastersThesisPOC
             return newListOfNumbers;
         }
 
-        public List<float> ComputeBasicCompressedListReplacingOnceWithOutMultiplication(string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits)
+        public (List<float>, string) ComputeBasicCompressedListReplacingOnceWithOutMultiplication(string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits)
         {
             List<float> newListOfNumbers = new List<float>();
+            var shiftPattern = "";
 
             foreach (var number in numbers)
             {
                 var customFloat = new CustomFloat(number);
 
-                var (newMantissa, nextBits) = _algorithmHelper.ReplacePatternWithExtensionOnce(pattern, customFloat.MantissaAsBitString, patternStartIndex, amountOfRoundingBits);
+                var (newMantissa, shiftedPattern) = _algorithmHelper.ReplacePatternTestMethod(pattern, customFloat.MantissaAsBitString, patternStartIndex, amountOfRoundingBits);
 
-                //var roundedMantissa = _algorithmHelper.RoundMantissaNew(newMantissa, nextBits);
+                shiftPattern = shiftedPattern;
 
                 var newFloat = _algorithmHelper.ConvertToFloat(customFloat.SignAsBitString, customFloat.ExponentAsBitString, newMantissa);
 
                 newListOfNumbers.Add(newFloat);
             }
 
+            return (newListOfNumbers, shiftPattern);
+        }
+
+        public List<float> AddCarryOverPropagationBits(List<float> numbers, string pattern)
+        {
+            List<float> newListOfNumbers = new List<float>();
+
+            var res = CalculateSharedIndexes(numbers);
+
+            var indexAfterLongestSharedSequence = FindIndexAfterLongestSharedSequence(res);
+
+            foreach (var number in numbers)
+            {
+                var customFloat = new CustomFloat(number);  // Assuming CustomFloat is a class that parses the float into its components.
+
+                var mantissa = customFloat.MantissaAsBitString;
+
+                // Ensure we're not replacing within the sequence itself by starting from the next index.
+                indexAfterLongestSharedSequence = indexAfterLongestSharedSequence <= mantissa.Length ? indexAfterLongestSharedSequence : mantissa.Length;
+
+                // Replace bits at the specified indices with '0'.
+                char[] mantissaArray = mantissa.ToCharArray();
+                for (int i = 0; i < 2 && indexAfterLongestSharedSequence + i < mantissa.Length; i++) // Ensure we don't exceed the mantissa length.
+                {
+                    mantissaArray[indexAfterLongestSharedSequence + i] = '0';
+                }
+                var newMantissa = new string(mantissaArray);
+
+                var newFloat = _algorithmHelper.ConvertToFloat(customFloat.SignAsBitString, customFloat.ExponentAsBitString, newMantissa);
+
+                newListOfNumbers.Add(newFloat);
+
+            }
+
             return newListOfNumbers;
         }
+
+        private int FindIndexAfterLongestSharedSequence(Dictionary<int, char> sharedIndexes)
+        {
+            int lastIndex = -1;
+
+            // This will ensure the indexes are processed in order, 
+            // which is crucial for finding the continuous sequence.
+            var orderedKeys = sharedIndexes.Keys.OrderBy(x => x);
+
+            // Check if the sequence starts from 0 and is continuous.
+            foreach (int key in orderedKeys)
+            {
+                if (key == lastIndex + 1)
+                {
+                    lastIndex = key;
+                }
+                else
+                {
+                    // If there's a gap in the sequence, we stop.
+                    break;
+                }
+            }
+
+            return lastIndex + 1; // We return the index after the longest shared sequence.
+        }
+
 
         public List<float> ComputeBasicCompressedListUsingExtension(float M, string pattern, List<float> numbers, int startIndexFromPattern, int amountOfRoundingBits)
         {
@@ -142,110 +203,6 @@ namespace MastersThesisPOC
             }
 
             return modifiedMantissa.ToString();
-        }
-
-        //Sign = True for negative, false for positive.
-        private (List<bool>, List<string>, List<string>) CompressFloats(List<float> numbers, Dictionary<int, char> sharedIndexValues)
-        {
-            // Lists to store signs, exponents, and modified mantissas
-            List<bool> signs = new List<bool>();
-            List<string> exponents = new List<string>();
-            List<string> modifiedMantissas = new List<string>();
-
-            foreach (var number in numbers)
-            {
-                // Convert float to its binary representation
-                byte[] bytes = BitConverter.GetBytes(number);
-                string binaryFloat = string.Join("", bytes.Select(b => Convert.ToString(b, 2).PadLeft(8, '0')));
-
-                // Extract and store the sign bit
-                bool sign = binaryFloat[0] == '1';
-                signs.Add(sign);
-
-                // Extract and store the exponent
-                string exponent = binaryFloat.Substring(1, 8);
-                exponents.Add(exponent);
-
-                // Extract and modify the mantissa
-                string mantissa = binaryFloat.Substring(9);
-                string modifiedMantissa = RemoveSharedBitsFromMantissa(mantissa, sharedIndexValues);
-                modifiedMantissas.Add(modifiedMantissa);
-            }
-
-            return (signs, exponents, modifiedMantissas);
-        }
-
-        public byte[] CompressMantissasUsingGZip(List<float> numbers, Dictionary<int, char> sharedIndexValues)
-        {
-            var (signs, exponents, modifiedMantissas) = CompressFloats(numbers, sharedIndexValues);
-
-            // Convert the list of modified mantissas into a single string
-            string mantissasString = string.Join("", modifiedMantissas);
-
-            // Convert the string into bytes
-            var bytes = Encoding.UTF8.GetBytes(mantissasString);
-
-            using (var msi = new MemoryStream(bytes))
-            using (var mso = new MemoryStream())
-            {
-                using (var gs = new GZipStream(mso, CompressionMode.Compress))
-                {
-                    msi.CopyTo(gs);
-                }
-
-                return mso.ToArray();
-            }
-        }
-
-        public string DecompressMantissasUsingGZip(byte[] compressedData)
-        {
-            using (var msi = new MemoryStream(compressedData))
-            using (var mso = new MemoryStream())
-            {
-                using (var gs = new GZipStream(msi, CompressionMode.Decompress))
-                {
-                    gs.CopyTo(mso);
-                }
-
-                // Convert the bytes back into a string
-                return Encoding.UTF8.GetString(mso.ToArray());
-            }
-        }
-
-        public List<string> ReconstructOriginalMantissas(string decompressedMantissas, Dictionary<int, char> sharedIndexValues)
-        {
-            int chunkSize = 23 - sharedIndexValues.Count;
-            List<string> reconstructedMantissas = new List<string>();
-
-            for (int i = 0; i < decompressedMantissas.Length; i += chunkSize)
-            {
-                StringBuilder mantissaChunk = new StringBuilder(decompressedMantissas.Substring(i, chunkSize));
-
-                // Insert the shared bits at the appropriate positions
-                foreach (var item in sharedIndexValues.OrderBy(x => x.Key))
-                {
-                    mantissaChunk.Insert(item.Key, item.Value);
-                }
-
-                reconstructedMantissas.Add(mantissaChunk.ToString());
-            }
-
-            return reconstructedMantissas;
-        }
-
-
-        public int CalculateMantissasSizeInBytes(List<float> numbers)
-        {
-            // Extract the mantissas from the floats
-            List<string> mantissas = numbers.Select(GetMantissaBits).ToList();
-
-            // Convert the list of mantissas into a single string
-            string mantissasString = string.Join("", mantissas);
-
-            // Convert the string into bytes
-            var bytes = Encoding.UTF8.GetBytes(mantissasString);
-
-            return bytes.Length;
         }
 
     }

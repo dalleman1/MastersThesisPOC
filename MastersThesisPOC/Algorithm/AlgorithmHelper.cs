@@ -232,6 +232,59 @@
             return (newMantissa, nextBits);
         }
 
+        public (string, string) ReplacePatternTestMethod(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength)
+        {
+            // Constants
+            const int maxPatternSpace = 12; // Maximum space for pattern repetition
+
+            // Check if patternStartIndex is out of range
+            if (patternStartIndex < 0 || patternStartIndex >= pattern.Length)
+            {
+                patternStartIndex = 0; // Reset to 0
+            }
+
+            // Shift the pattern to start from the given index
+            string shiftedPattern = pattern.Substring(patternStartIndex) + pattern.Substring(0, patternStartIndex);
+            //Console.WriteLine("Shifted pattern: " + shiftedPattern);
+
+            // Determine the prepend string based on the first character of the shifted pattern
+            string prependStr = shiftedPattern.StartsWith("0") ? shiftedPattern.Substring(0, shiftedPattern.IndexOf('1') + 1) : string.Empty;
+            //Console.WriteLine("Prepend string: " + prependStr);
+
+            // Calculate space for the pattern after the prependStr (excluding the '1' at the end of prependStr)
+            int spaceForPattern = maxPatternSpace - (prependStr.Length - 1); // not subtracting 1 for the '1' in prependStr
+            //Console.WriteLine("Space for pattern: " + spaceForPattern);
+
+            // Calculate how many times the pattern can be repeated fully within the spaceForPattern
+            int fullPatternRepetitions = spaceForPattern / shiftedPattern.Length; // full repetitions only, no partial pattern
+            //Console.WriteLine("Full pattern repetitions: " + fullPatternRepetitions);
+
+            // Determine the starting point of the mantissa (which is the continuation of the pattern after prependStr)
+            string startOfMantissa = shiftedPattern.Substring(prependStr.Length);
+
+            // Construct the new mantissa segment with the repeated pattern (full repetitions only)
+            string repeatedPattern = startOfMantissa + string.Concat(Enumerable.Repeat(shiftedPattern, fullPatternRepetitions));
+            //Console.WriteLine("Repeated pattern: " + repeatedPattern);
+
+            // Calculate the starting index for the original mantissa considering the length of newMantissaSegment
+            int originalMantissaStartIndex = repeatedPattern.Length;
+            //Console.WriteLine("Original Mantissa start index " + originalMantissaStartIndex);
+            // Append the original mantissa after the new mantissa segment, starting from the calculated index
+            // Ensure that the new mantissa doesn't exceed the original length by appending the necessary number of bits from the original mantissa
+            int remainingLength = mantissa.Length - originalMantissaStartIndex;
+            string newMantissa = repeatedPattern + mantissa.Substring(mantissa.Length - remainingLength, remainingLength);
+
+            //Console.WriteLine("New mantissa: " + newMantissa);
+
+            return (newMantissa, shiftedPattern);
+        }
+
+
+
+
+
+
+
 
         public (string, string) ReplacePatternOnce(string pattern, string mantissa, int placement, int? nextBitsLength)
         {
