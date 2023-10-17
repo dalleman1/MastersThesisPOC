@@ -201,7 +201,7 @@ namespace MastersThesisPOC
             Console.WriteLine("\n");
             Console.ForegroundColor = ConsoleColor.White;
 
-            return multipliedList;
+            return resultsFromExtension;
         }
 
         // Function to extract the exponent from a float

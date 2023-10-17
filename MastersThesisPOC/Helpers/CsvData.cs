@@ -6,9 +6,4 @@
         public float lightavg { get; set; }
         public float humidityavg { get; set; }
     }
-
-    public class CsvHouseHoldData
-    {
-        public float Voltage { get; set; }
-    }
 }

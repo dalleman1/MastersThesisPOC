@@ -46,9 +46,6 @@ testDict.Add(15f, "0001");
 
 var temperatureFloats = csvReader.ReadCsvColumn("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
 var humidityFloats = csvReader.ReadCsvColumnHumidity("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
-var voltageFloats = csvReader.ReadCsvColumnVoltage("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\household_power_consumption.csv");
-
-var voltageExponent7 = voltageFloats.Where(x => ExtractExponent(x) == 7).ToList();
 
 // Splitting the dataset based on exponent
 var exponent2List = temperatureFloats.Where(x => ExtractExponent(x) == 2).ToList();
@@ -74,18 +71,18 @@ var resultFromProgram = new List<float>();
 
 foreach (var (M, pattern) in testDict)
 {
-     for (int i = 2; i < 3; i++)
+     for (int i = 0; i < 1; i++)
      {
-        resultFromProgram = executer.RunProgram(M, pattern, voltageExponent7, i, 100);
+        resultFromProgram = executer.RunProgram(M, pattern, exponent4List, i, 100);
      }
 
 }
 
-string nameOfOutput = "voltage_compressible-" + Guid.NewGuid().ToString() + ".csv";
+string nameOfOutput = "melbourne-smart_city_compressible-" + Guid.NewGuid().ToString() + ".csv";
 
 string path = @"C:\Users\mongl\OneDrive\Skrivebord\Master thesis material\GD\\aaron-gd-aqp-main\" + nameOfOutput;
 
-string columnName = "voltage";
+string columnName = "tempavg";
 
 csvWriter.WriteToCsv(columnName, resultFromProgram, path);
 
