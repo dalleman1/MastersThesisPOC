@@ -3,7 +3,7 @@
     public interface IMetrics
     {
         float CalculatePercentDifference(float value1, float value2);
-        float CalculateAverageErrorPercentDifference(List<float> originalValues, List<float> newValues);
+        float CalculateAverageErrorPercentDifference(List<float> originalValues, List<float> newValues, float M);
         (float list1Average, float list2Average) CalculateAverages(List<float> list1, List<float> list2);
     }
 
@@ -14,7 +14,7 @@
             return Math.Abs((value1 - value2) / ((value1 + value2) / 2)) * 100;
         }
 
-        public float CalculateAverageErrorPercentDifference(List<float> originalValues, List<float> newValues)
+        public float CalculateAverageErrorPercentDifference(List<float> originalValues, List<float> newValues, float M)
         {
             if (originalValues.Count != newValues.Count)
             {
@@ -25,7 +25,7 @@
 
             for (int i = 0; i < originalValues.Count; i++)
             {
-                var res = CalculatePercentDifference(originalValues[i], newValues[i]);
+                var res = CalculatePercentDifference(originalValues[i], (newValues[i]/M));
                 totalDifference += res;
             }
 

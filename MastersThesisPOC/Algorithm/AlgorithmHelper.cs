@@ -235,7 +235,7 @@
         public (string, string) ReplacePatternTestMethod(string pattern, string mantissa, int patternStartIndex, int? nextBitsLength)
         {
             // Constants
-            const int maxPatternSpace = 12; // Maximum space for pattern repetition
+            const int maxPatternSpace = 23; // Maximum space for pattern repetition
 
             // Check if patternStartIndex is out of range
             if (patternStartIndex < 0 || patternStartIndex >= pattern.Length)
@@ -265,6 +265,12 @@
             // Construct the new mantissa segment with the repeated pattern (full repetitions only)
             string repeatedPattern = startOfMantissa + string.Concat(Enumerable.Repeat(shiftedPattern, fullPatternRepetitions));
             //Console.WriteLine("Repeated pattern: " + repeatedPattern);
+
+            // Ensure the length of repeatedPattern is not more than 23
+            if (repeatedPattern.Length > 23)
+            {
+                repeatedPattern = repeatedPattern.Substring(0, 23);
+            }
 
             // Calculate the starting index for the original mantissa considering the length of newMantissaSegment
             int originalMantissaStartIndex = repeatedPattern.Length;

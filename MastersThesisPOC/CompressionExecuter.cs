@@ -1,4 +1,5 @@
 ﻿using MastersThesisPOC.CustomMath;
+using Serilog;
 
 namespace MastersThesisPOC
 {
@@ -8,12 +9,14 @@ namespace MastersThesisPOC
         private readonly ICompressionMechanism _compressionMechanism;
         private readonly ILaplaceNoiseGenerator _laplaceNoiseGenerator;
         private readonly IMetrics _metrics;
+        private readonly ILogger _logger;
 
-        public CompressionExecuter(ICompressionMechanism compressionMechanism, ILaplaceNoiseGenerator laplaceNoiseGenerator, IMetrics metrics)
+        public CompressionExecuter(ICompressionMechanism compressionMechanism, ILaplaceNoiseGenerator laplaceNoiseGenerator, IMetrics metrics, ILogger logger)
         {
             _compressionMechanism = compressionMechanism;
             _laplaceNoiseGenerator = laplaceNoiseGenerator;
             _metrics = metrics;
+            _logger = logger;
         }
 
         public List<float> RunProgram(float M, string pattern, List<float> floats, int patternStartIndex, int nextBits)
@@ -41,6 +44,8 @@ namespace MastersThesisPOC
             var (resultsFromExtension, shiftedPattern) = _compressionMechanism.ComputeBasicCompressedListReplacingOnceWithOutMultiplication(pattern, floats, patternStartIndex, nextBits);
             Console.WriteLine("Average After Applying Pattern:" + resultsFromExtension.Average());
 
+            _logger.Information($"M: {M} | Pattern: {pattern} | ShiftedPattern: {shiftedPattern}");
+
             var sharedIndexesFromExtension = _compressionMechanism.CalculateSharedIndexes(resultsFromExtension);
 
             foreach (int index in Enumerable.Range(0, 23))
@@ -62,6 +67,7 @@ namespace MastersThesisPOC
                 Console.WriteLine($"Index: {key}, value: {value}");
             }
 
+            _logger.Information($"Number of shared indexes: {sharedIndexesFromExtension.Count}");
 
             Console.WriteLine("-----------------------------------");
             Console.WriteLine("Adding Noise\n");
@@ -70,7 +76,7 @@ namespace MastersThesisPOC
 
             foreach (var result in resultsFromExtension)
             {
-                var noisyNumber = _laplaceNoiseGenerator.GenerateNoiseCentered(result, 0.5f, 0.001f);
+                var noisyNumber = _laplaceNoiseGenerator.GenerateNoiseCentered(result, 0.5f, 0.01f);
                 //Console.WriteLine(noisyNumber);
                 noisyNumbers.Add(noisyNumber);
 
@@ -97,6 +103,8 @@ namespace MastersThesisPOC
             {
                 Console.WriteLine($"Index: {key}, value: {value}");
             }
+
+            _logger.Information($"Number of shared indexes after adding noise: {sharedIndexesFromNoise.Count}");
 
             Console.WriteLine("Average After Adding Noise:" + noisyNumbers.Average());
             Console.WriteLine("Largest Value After Adding Noise:" + noisyNumbers.Max());
@@ -127,6 +135,8 @@ namespace MastersThesisPOC
             {
                 Console.WriteLine($"Index: {key}, value: {value}");
             }
+
+            _logger.Information($"Number of shared indexes after adding propagation zeros: {sharedIndexesFromPropagation.Count}");
 
             Console.WriteLine("Average After Adding Propagation Zeros:" + propagationList.Average());
             Console.WriteLine("Largest Value After Adding Propagation Zeros:" + propagationList.Max());
@@ -178,6 +188,8 @@ namespace MastersThesisPOC
                 }
             }
 
+            _logger.Information($"Number of shared indexes after multiplication: {sharedIndexesFromMultiplication.Count}");
+
             Console.WriteLine("Average After Multiplication:" + multipliedList.Average());
             Console.WriteLine("Largest After Multiplied: " + multipliedList.Max());
             Console.WriteLine("Smallest After Multiplied: " + multipliedList.Min());
@@ -200,6 +212,13 @@ namespace MastersThesisPOC
             Console.Write(multipliedList.Average() / M);
             Console.WriteLine("\n");
             Console.ForegroundColor = ConsoleColor.White;
+
+            var difference = Math.Abs((((multipliedList.Average() / M) - startAverage) / startAverage) * 100);
+            var individualDifference = _metrics.CalculateAverageErrorPercentDifference(floats, multipliedList, M);
+
+            _logger.Information($"Difference in Average: {difference} %");
+
+            _logger.Information($"Average difference of the individual numbers: {individualDifference} %");
 
             return multipliedList;
         }

@@ -3,7 +3,9 @@ using MastersThesisPOC.Algorithm;
 using MastersThesisPOC.CustomMath;
 using MastersThesisPOC.Helpers;
 using Microsoft.Extensions.DependencyInjection;
+using Serilog;
 using System.Diagnostics;
+using System.Text;
 
 var services = new ServiceCollection();
 
@@ -14,13 +16,17 @@ services.AddScoped<IAlgorithmHelper, AlgorithmHelper>()
     .AddScoped<ICompressionMechanism, CompressionMechanism>()
     .AddScoped<ICompressionExecuter, CompressionExecuter>()
     .AddScoped<ICsvWriter, CsvWriter>()
-    .AddScoped<IMetrics, Metrics>();
+    .AddScoped<IMetrics, Metrics>()
+    .AddSingleton<ILogger>(sp => new LoggerConfiguration()
+    .WriteTo.File($"C:\\Users\\mongl\\OneDrive\\Skrivebord\\logs\\log-{DateTime.Now:yyyyMMdd-HHmmss}.txt")
+    .CreateLogger());
 
 var serviceProvider = services.BuildServiceProvider();
 
 var executer = serviceProvider.GetRequiredService<ICompressionExecuter>();
 var csvReader = serviceProvider.GetRequiredService<ICsvReader>();
 var csvWriter = serviceProvider.GetRequiredService<ICsvWriter>();
+var logger = serviceProvider.GetRequiredService<ILogger>();
 
 var dict = new Dictionary<float, string>();
 var testDict = new Dictionary<float, string>();
@@ -42,11 +48,20 @@ dict.Add(21f, "100001");
 dict.Add(23f, "01100100001");
 dict.Add(31f, "00001");
 
-testDict.Add(15f, "0001");
+
+//testDict.Add(3f, "01");
+//testDict.Add(5f, "0011");
+//testDict.Add(7f, "001");
+testDict.Add(9f, "000111");
+//testDict.Add(11f, "0001011101");
+//testDict.Add(13f, "000100111011");
+//testDict.Add(15f, "0001");
+
+//testDict.Add(17f, "11100001");
 
 var temperatureFloats = csvReader.ReadCsvColumn("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
 var humidityFloats = csvReader.ReadCsvColumnHumidity("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
-var voltageFloats = csvReader.ReadCsvColumnVoltage("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\household_power_consumption.csv");
+var voltageFloats = csvReader.ReadCsvColumnVoltage("C:\\Users\\mongl\\OneDrive\\Skrivebord\\household_power_consumption.csv");
 
 var voltageExponent7 = voltageFloats.Where(x => ExtractExponent(x) == 7).ToList();
 
@@ -72,39 +87,69 @@ List<List<float>> listOfListsHumidity = new List<List<float>>() { humidityexpone
 
 var resultFromProgram = new List<float>();
 
+var stopWatch = new Stopwatch();
+
+
 foreach (var (M, pattern) in testDict)
 {
-     for (int i = 2; i < 3; i++)
+     for (int i = 3; i < 4; i++)
      {
+        stopWatch.Start();
+
         resultFromProgram = executer.RunProgram(M, pattern, voltageExponent7, i, 100);
-     }
 
-}
 
-string nameOfOutput = "voltage_compressible-" + Guid.NewGuid().ToString() + ".csv";
+        stopWatch.Stop();
 
-string path = @"C:\Users\mongl\OneDrive\Skrivebord\Master thesis material\GD\\aaron-gd-aqp-main\" + nameOfOutput;
+        logger.Information($"Time Elapsed of Compression (s): {stopWatch.Elapsed.TotalSeconds}");
 
-string columnName = "voltage";
+        stopWatch.Reset();
+        stopWatch.Start();
 
-csvWriter.WriteToCsv(columnName, resultFromProgram, path);
+        string nameOfOutput = $"M{M}-" + "voltage_compressible-" + Guid.NewGuid().ToString() + ".csv";
 
-string pathToScript = @"C:\Users\mongl\OneDrive\Skrivebord\Master thesis material\GD\aaron-gd-aqp-main\compressionTester.py";
+        string path = @"C:\Users\mongl\OneDrive\Skrivebord\Master thesis material\GD\\aaron-gd-aqp-main\" + nameOfOutput;
 
-ProcessStartInfo start = new ProcessStartInfo();
-start.FileName = "\"C:\\Users\\mongl\\OneDrive\\Skrivebord\\Master thesis material\\GD\\aaron-gd-aqp-main\\.env\\Scripts\\python.exe\"";
-start.Arguments = string.Format("\"{0}\" \"{1}\" \"{2}\"", pathToScript, path, columnName);
-start.UseShellExecute = false;
-start.RedirectStandardOutput = true;
-using (Process process = Process.Start(start))
-{
-    using (StreamReader reader = process.StandardOutput)
-    {
-        string result = reader.ReadToEnd();
-        Console.Write(result);
+        string columnName = "voltage";
+
+        csvWriter.WriteToCsv(columnName, resultFromProgram, path);
+
+        string pathToScript = @"C:\Users\mongl\OneDrive\Skrivebord\Master thesis material\GD\aaron-gd-aqp-main\compressionTester.py";
+
+        ProcessStartInfo start = new ProcessStartInfo();
+        start.FileName = "\"C:\\Users\\mongl\\OneDrive\\Skrivebord\\Master thesis material\\GD\\aaron-gd-aqp-main\\.env\\Scripts\\python.exe\"";
+        start.Arguments = string.Format("\"{0}\" \"{1}\" \"{2}\"", pathToScript, path, columnName);
+        start.UseShellExecute = false;
+        start.RedirectStandardOutput = true;
+        using (Process process = new Process())
+        {
+            process.StartInfo = start;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+            process.Start();
+
+            process.WaitForExit();  // Wait for the process to finish
+
+            using (StreamReader reader = process.StandardOutput)
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    Console.WriteLine(line); // or log it using your logger
+
+                    logger.Information(line);
+                }
+            }
+
+        }
+
+        stopWatch.Stop();
+        logger.Information($"Time Elapsed of GD Compression (s): {stopWatch.Elapsed.TotalSeconds}");
+        stopWatch.Reset();
+        logger.Information($"___________________________________________________________________________");
+        Serilog.Log.CloseAndFlush();
     }
 }
-
 
 
 
