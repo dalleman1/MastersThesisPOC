@@ -76,7 +76,7 @@ namespace MastersThesisPOC
 
             foreach (var result in resultsFromExtension)
             {
-                var noisyNumber = _laplaceNoiseGenerator.GenerateNoiseCentered(result, 0.5f, 0.01f);
+                var noisyNumber = _laplaceNoiseGenerator.GenerateNoiseCentered(result, 1.0f, 0.000001f);
                 //Console.WriteLine(noisyNumber);
                 noisyNumbers.Add(noisyNumber);
 

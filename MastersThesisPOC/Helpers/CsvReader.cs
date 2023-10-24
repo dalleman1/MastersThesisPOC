@@ -11,6 +11,9 @@ namespace MastersThesisPOC.Helpers
         List<float> ReadCsvColumn(string filePath);
         List<float> ReadCsvColumnHumidity(string filePath);
         List<float> ReadCsvColumnVoltage(string filePath);
+        List<float> ReadCsvColumnGI(string filePath);
+        List<float> ReadCsvColumnSubMetering3(string filePath);
+        List<float> ReadCsvColumnGlobalActivePower(string filePath);
     }
 
     public class CsvReader : ICsvReader
@@ -57,6 +60,84 @@ namespace MastersThesisPOC.Helpers
                 {
                     var records = csv.GetRecords<CsvHouseHoldData>().ToList();
                     return records.Select(r => r.Voltage).ToList();
+                }
+            }
+        }
+
+        public List<float> ReadCsvColumnGI(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = ";",
+                    MissingFieldFound = null, // Add this line to ignore missing fields
+                    ReadingExceptionOccurred = context =>
+                    {
+                        // Check if the exception is a TypeConverterException
+                        if (context.Exception is CsvHelper.TypeConversion.TypeConverterException)
+                        {
+                            return false; // Return false to ignore the record and continue reading.
+                        }
+                        return true; // Return true for other exceptions to throw them.
+                    }
+                };
+                using (var csv = new CsvHelper.CsvReader(reader, config))
+                {
+                    var records = csv.GetRecords<CsvHouseHoldData>().ToList();
+                    return records.Select(r => r.Global_intensity).ToList();
+                }
+            }
+        }
+
+        public List<float> ReadCsvColumnSubMetering3(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = ";",
+                    MissingFieldFound = null, // Add this line to ignore missing fields
+                    ReadingExceptionOccurred = context =>
+                    {
+                        // Check if the exception is a TypeConverterException
+                        if (context.Exception is CsvHelper.TypeConversion.TypeConverterException)
+                        {
+                            return false; // Return false to ignore the record and continue reading.
+                        }
+                        return true; // Return true for other exceptions to throw them.
+                    }
+                };
+                using (var csv = new CsvHelper.CsvReader(reader, config))
+                {
+                    var records = csv.GetRecords<CsvHouseHoldData>().ToList();
+                    return records.Select(r => r.Sub_metering_3).ToList();
+                }
+            }
+        }
+
+        public List<float> ReadCsvColumnGlobalActivePower(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = ";",
+                    MissingFieldFound = null, // Add this line to ignore missing fields
+                    ReadingExceptionOccurred = context =>
+                    {
+                        // Check if the exception is a TypeConverterException
+                        if (context.Exception is CsvHelper.TypeConversion.TypeConverterException)
+                        {
+                            return false; // Return false to ignore the record and continue reading.
+                        }
+                        return true; // Return true for other exceptions to throw them.
+                    }
+                };
+                using (var csv = new CsvHelper.CsvReader(reader, config))
+                {
+                    var records = csv.GetRecords<CsvHouseHoldData>().ToList();
+                    return records.Select(r => r.Global_active_power).ToList();
                 }
             }
         }
