@@ -248,7 +248,7 @@
             //Console.WriteLine("Shifted pattern: " + shiftedPattern);
 
             // Determine the prepend string based on the first character of the shifted pattern
-            string prependStr = shiftedPattern.StartsWith("0") ? shiftedPattern.Substring(0, shiftedPattern.IndexOf('1') + 1) : string.Empty;
+            string prependStr = shiftedPattern.StartsWith("0") ? shiftedPattern.Substring(0, shiftedPattern.IndexOf('1')) : string.Empty;
             //Console.WriteLine("Prepend string: " + prependStr);
 
             // Calculate space for the pattern after the prependStr (excluding the '1' at the end of prependStr)
@@ -285,12 +285,59 @@
             return (newMantissa, shiftedPattern);
         }
 
+        public (string, string, string) ReplacePatternNoiseBeforePattern(string pattern, string mantissa, int patternStartIndex, int mantissaStartIndex, int nextBitsLength)
+        {
+            // Constants
+            const int maxPatternSpace = 23; // Maximum space for pattern repetition
 
+            // Check if patternStartIndex is out of range
+            if (patternStartIndex < 0 || patternStartIndex >= pattern.Length)
+            {
+                patternStartIndex = 0; // Reset to 0
+            }
 
+            // Shift the pattern to start from the given index
+            string shiftedPattern = pattern.Substring(patternStartIndex) + pattern.Substring(0, patternStartIndex);
 
+            // Check if mantissaStartIndex is out of range
+            if (mantissaStartIndex < 0 || mantissaStartIndex >= mantissa.Length)
+            {
+                mantissaStartIndex = 0; // Reset to 0
+            }
 
+            // Calculate space for the pattern
+            int spaceForPattern = maxPatternSpace - mantissaStartIndex;
 
+            // Construct the new mantissa segment with the pattern repeated as many times as possible within the space
+            string patternSegment = string.Concat(Enumerable.Repeat(shiftedPattern, (spaceForPattern + shiftedPattern.Length - 1) / shiftedPattern.Length));
 
+            // Cut off the excess part of the patternSegment if it exceeds spaceForPattern
+            string nextBits = "";
+            if (patternSegment.Length > spaceForPattern)
+            {
+                // Store the next bits for rounding
+                nextBits = patternSegment.Substring(spaceForPattern, Math.Min(nextBitsLength, patternSegment.Length - spaceForPattern));
+                // Cut off the excess patternSegment
+                patternSegment = patternSegment.Substring(0, spaceForPattern);
+            }
+            else
+            {
+                // In case the patternSegment doesn't exceed, compute the next bits from the shifted pattern
+                nextBits = string.Concat(Enumerable.Repeat(shiftedPattern, (nextBitsLength + shiftedPattern.Length - 1) / shiftedPattern.Length))
+                                 .Substring(0, nextBitsLength);
+            }
+
+            // Append the original mantissa at the beginning (up to the mantissaStartIndex) and then the patternSegment
+            string newMantissa = mantissa.Substring(0, mantissaStartIndex) + patternSegment;
+
+            // Ensure the total length of newMantissa doesn't exceed the original length of mantissa
+            if (newMantissa.Length > mantissa.Length)
+            {
+                newMantissa = newMantissa.Substring(0, mantissa.Length);
+            }
+
+            return (newMantissa, shiftedPattern, nextBits);
+        }
 
         public (string, string) ReplacePatternOnce(string pattern, string mantissa, int placement, int? nextBitsLength)
         {

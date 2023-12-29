@@ -14,6 +14,9 @@ namespace MastersThesisPOC.Helpers
         List<float> ReadCsvColumnGI(string filePath);
         List<float> ReadCsvColumnSubMetering3(string filePath);
         List<float> ReadCsvColumnGlobalActivePower(string filePath);
+        List<TimeSpan> ReadCsvColumnTime(string filePath);
+        List<float> ReadCsvColumPondTemp(string filePath);
+        List<float> ReadCsvColumnHumidityReal(string filePath);
     }
 
     public class CsvReader : ICsvReader
@@ -60,6 +63,86 @@ namespace MastersThesisPOC.Helpers
                 {
                     var records = csv.GetRecords<CsvHouseHoldData>().ToList();
                     return records.Select(r => r.Voltage).ToList();
+                }
+            }
+        }
+
+        public List<float> ReadCsvColumPondTemp(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = ",",
+                    MissingFieldFound = null, // Add this line to ignore missing fields
+                    ReadingExceptionOccurred = context =>
+                    {
+                        // Check if the exception is a TypeConverterException
+                        if (context.Exception is CsvHelper.TypeConversion.TypeConverterException)
+                        {
+                            return false; // Return false to ignore the record and continue reading.
+                        }
+                        return true; // Return true for other exceptions to throw them.
+                    }
+                };
+                using (var csv = new CsvHelper.CsvReader(reader, config))
+                {
+                    var records = csv.GetRecords<CsvPondData>().ToList();
+                    return records.Select(r => r.Temperature).ToList();
+                }
+            }
+        }
+
+        public List<float> ReadCsvColumnHumidityReal(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = ",",
+                    MissingFieldFound = null,
+                    ReadingExceptionOccurred = context =>
+                    {
+                        if (context.Exception is CsvHelper.TypeConversion.TypeConverterException)
+                        {
+                            return false;
+                        }
+                        return true;
+                    },
+                    HasHeaderRecord = false, // Set this to false since your CSV file doesn't have headers
+                };
+
+                using (var csv = new CsvHelper.CsvReader(reader, config))
+                {
+                    var records = csv.GetRecords<CsvHumidityData>().ToList();
+                    return records.Select(r => r.Humidity).ToList();
+                }
+            }
+        }
+
+
+        public List<TimeSpan> ReadCsvColumnTime(string filePath)
+        {
+            using (var reader = new StreamReader(filePath))
+            {
+                var config = new CsvHelper.Configuration.CsvConfiguration(CultureInfo.InvariantCulture)
+                {
+                    Delimiter = ";",
+                    MissingFieldFound = null, // Add this line to ignore missing fields
+                    ReadingExceptionOccurred = context =>
+                    {
+                        // Check if the exception is a TypeConverterException
+                        if (context.Exception is CsvHelper.TypeConversion.TypeConverterException)
+                        {
+                            return false; // Return false to ignore the record and continue reading.
+                        }
+                        return true; // Return true for other exceptions to throw them.
+                    }
+                };
+                using (var csv = new CsvHelper.CsvReader(reader, config))
+                {
+                    var records = csv.GetRecords<CsvHouseHoldData>().ToList();
+                    return records.Select(r => r.Time).ToList();
                 }
             }
         }

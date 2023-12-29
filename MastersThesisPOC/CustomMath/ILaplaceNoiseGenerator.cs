@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using MathNet.Numerics.Distributions;
+using System.Security.Cryptography;
 
 namespace MastersThesisPOC.CustomMath
 {
@@ -7,8 +8,6 @@ namespace MastersThesisPOC.CustomMath
         float GenerateNoise(double epsilon, double deltaF, double mu = 0);
         float GenerateNoiseScaled(double epsilon, double deltaF, double scale, double mu = 0);
         float GenerateNoiseCentered(float centerValue, double epsilon, double deltaF);
-        float GenerateNoiseCenteredConsideringExponent(float centerValue, double epsilon, double deltaF);
-        float GenerateWith99PercentCertaintyNoiseCentered(float centerValue, double epsilon, double deltaF);
         float GenerateLaplaceNoiseTest(float epsilon, float scale);
     }
 
@@ -41,86 +40,11 @@ namespace MastersThesisPOC.CustomMath
 
             return (float)(noise / scale);  // Scale the noise
         }
-
+    
         public float GenerateNoiseCentered(float centerValue, double epsilon, double deltaF)
         {
-            var b = deltaF / epsilon;
-            double u = GetRandomDouble() - 0.5;  // center around zero.
-            var res = (float)(centerValue - b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u)));
-            return res;
-        }
-
-        public float GenerateWith99PercentCertaintyNoiseCentered(float centerValue, double epsilon, double deltaF)
-        {
-            var b = deltaF / epsilon;
-
-            // 1. Calculate Boundaries for the Noise
-            float lowerBoundary = MathF.Pow(2, (int)MathF.Log2(centerValue) - 1);
-            float upperBoundary = MathF.Pow(2, (int)MathF.Log2(centerValue));
-
-            float maxNoiseUpper = upperBoundary - centerValue;
-            float maxNoiseLower = centerValue - lowerBoundary;
-
-            // 2. Calculate the Noise Range for 99% Probability
-            double noiseRangeUpper = b * Math.Log(50); // F^-1(0.99) for Laplace CDF
-            double noiseRangeLower = -b * Math.Log(50); // F^-1(0.01) for Laplace CDF
-
-            // Adjust noise range to ensure it doesn't exceed our calculated boundaries
-            noiseRangeUpper = Math.Min(noiseRangeUpper, maxNoiseUpper);
-            noiseRangeLower = Math.Max(noiseRangeLower, -maxNoiseLower);
-
-
-            // Ensure noise range does not exceed boundaries
-            if (noiseRangeUpper > maxNoiseUpper)
-            {
-                noiseRangeUpper = maxNoiseUpper;
-            }
-            if (noiseRangeLower < -maxNoiseLower)
-            {
-                noiseRangeLower = -maxNoiseLower;
-            }
-
-            // Ensure noiseRangeLower is less than or equal to noiseRangeUpper
-            if (noiseRangeLower > noiseRangeUpper)
-            {
-                var temp = noiseRangeLower;
-                noiseRangeLower = noiseRangeUpper;
-                noiseRangeUpper = temp;
-            }
-            // 3. Add the Noise
-            double u = GetRandomDouble() - 0.5;  // center around zero.
-            double noise = -b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u));
-            // Ensure noise doesn't exceed the range
-            noise = Math.Clamp(noise, noiseRangeLower, noiseRangeUpper);
-
-            return centerValue + (float)noise;
-        }
-
-        public float GenerateNoiseCenteredConsideringExponent(float centerValue, double epsilon, double deltaF)
-        {
-            // Determine boundaries based on the exponent of the centerValue
-            float lowerBoundary = MathF.Pow(2, (int)MathF.Log2(centerValue));
-            float upperBoundary = MathF.Pow(2, (int)MathF.Log2(centerValue) + 1);
-
-            // Define a threshold for considering a value to be close to the boundary
-            float threshold = 0.01f * (upperBoundary - lowerBoundary);
-
-            var b = deltaF / epsilon;
-            double u = GetRandomDouble() - 0.5;
-
-            // If close to the lower boundary, generate only positive noise
-            if (centerValue - lowerBoundary < threshold)
-            {
-                u = Math.Abs(u);
-            }
-            // If close to the upper boundary, generate only negative noise
-            else if (upperBoundary - centerValue < threshold)
-            {
-                u = -Math.Abs(u);
-            }
-            //var res = centerValue + (float)(-b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u)));
-            var res = (float)(centerValue - b * Math.Sign(u) * Math.Log(1 - 2 * Math.Abs(u)));
-            return res;
+            double scale = deltaF / epsilon;
+            return (float)Laplace.Sample(centerValue, scale);
         }
 
         private readonly Random random = new Random();

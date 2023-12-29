@@ -57,6 +57,29 @@ namespace MastersThesisPOC
             return (newListOfNumbers, shiftPattern);
         }
 
+        public (List<float>, string) ComputeBasicCompressedListReplacingOnceWithOutMultiplicationAfterNoise(string pattern, List<float> numbers, int patternStartIndex, int amountOfRoundingBits, int replacementStartIndex)
+        {
+            List<float> newListOfNumbers = new List<float>();
+            var shiftPattern = "";
+
+            foreach (var number in numbers)
+            {
+                var customFloat = new CustomFloat(number);
+
+                var (newMantissa, shiftedPattern, nextBits) = _algorithmHelper.ReplacePatternNoiseBeforePattern(pattern, customFloat.MantissaAsBitString, patternStartIndex, replacementStartIndex, amountOfRoundingBits);
+
+                shiftPattern = shiftedPattern;
+
+                var roundedMantissa = _algorithmHelper.RoundMantissaNew(newMantissa, nextBits);
+
+                var newFloat = _algorithmHelper.ConvertToFloat(customFloat.SignAsBitString, customFloat.ExponentAsBitString, roundedMantissa);
+
+                newListOfNumbers.Add(newFloat);
+            }
+
+            return (newListOfNumbers, shiftPattern);
+        }
+
         public List<float> AddCarryOverPropagationBits(List<float> numbers, string pattern)
         {
             List<float> newListOfNumbers = new List<float>();
@@ -64,6 +87,11 @@ namespace MastersThesisPOC
             var res = CalculateSharedIndexes(numbers);
 
             var indexAfterLongestSharedSequence = FindIndexAfterLongestSharedSequence(res);
+
+            if (indexAfterLongestSharedSequence == 0)
+            {
+                return numbers;
+            }
 
             foreach (var number in numbers)
             {
@@ -91,6 +119,44 @@ namespace MastersThesisPOC
             return newListOfNumbers;
         }
 
+        public List<float> AddCarryOverPropagationBitsTwo(List<float> numbers, string pattern)
+        {
+            List<float> newListOfNumbers = new List<float>();
+
+            foreach (var number in numbers)
+            {
+                var indexAfterLongestSharedSequence = LengthOfCommonStartSequence(number, pattern);
+
+                if (indexAfterLongestSharedSequence == 0)
+                {
+                    newListOfNumbers.Add(number);
+                }
+                else { 
+
+                    var customFloat = new CustomFloat(number);  // Assuming CustomFloat is a class that parses the float into its components.
+
+                    var mantissa = customFloat.MantissaAsBitString;
+
+                    // Ensure we're not replacing within the sequence itself by starting from the next index.
+                    indexAfterLongestSharedSequence = indexAfterLongestSharedSequence <= mantissa.Length ? indexAfterLongestSharedSequence : mantissa.Length;
+
+                    // Replace bits at the specified indices with '0'.
+                    char[] mantissaArray = mantissa.ToCharArray();
+                    for (int i = 0; i < 2 && indexAfterLongestSharedSequence + i < mantissa.Length; i++) // Ensure we don't exceed the mantissa length.
+                    {
+                        mantissaArray[indexAfterLongestSharedSequence + i] = '0';
+                    }
+                    var newMantissa = new string(mantissaArray);
+
+                    var newFloat = _algorithmHelper.ConvertToFloat(customFloat.SignAsBitString, customFloat.ExponentAsBitString, newMantissa);
+
+                    newListOfNumbers.Add(newFloat);
+
+                }
+            }
+            return newListOfNumbers;
+        }
+
         private int FindIndexAfterLongestSharedSequence(Dictionary<int, char> sharedIndexes)
         {
             int lastIndex = -1;
@@ -115,7 +181,6 @@ namespace MastersThesisPOC
 
             return lastIndex + 1; // We return the index after the longest shared sequence.
         }
-
 
         public List<float> ComputeBasicCompressedListUsingExtension(float M, string pattern, List<float> numbers, int startIndexFromPattern, int amountOfRoundingBits)
         {
@@ -178,6 +243,25 @@ namespace MastersThesisPOC
             return sharedIndexValues;
         }
 
+        public int LengthOfCommonStartSequence(float number, string pattern)
+        {
+            var mantissaBits = GetMantissaBits(number);
+            int commonLength = 0; // Length of the longest common starting subsequence
+
+            // Calculate the length of the shorter of the two strings (mantissa or pattern)
+            int comparisonLength = Math.Min(mantissaBits.Length, pattern.Length);
+
+            // Compare each bit until they differ or until we reach the end of one of the strings
+            for (int i = 0; i < comparisonLength; i++)
+            {
+                if (mantissaBits[i] == pattern[i])
+                    commonLength++;
+                else
+                    break; // Stop comparing after the first non-matching bit
+            }
+
+            return commonLength;
+        }
 
         // Extract the mantissa bits from a float
         private string GetMantissaBits(float number)

@@ -15,6 +15,7 @@ services.AddScoped<IAlgorithmHelper, AlgorithmHelper>()
     .AddScoped<ICsvReader, CsvReader>()
     .AddScoped<ICompressionMechanism, CompressionMechanism>()
     .AddScoped<ICompressionExecuter, CompressionExecuter>()
+    .AddScoped<IPredictM, PredictM>()
     .AddScoped<ICsvWriter, CsvWriter>()
     .AddScoped<IMetrics, Metrics>()
     .AddSingleton<ILogger>(sp => new LoggerConfiguration()
@@ -27,84 +28,74 @@ var executer = serviceProvider.GetRequiredService<ICompressionExecuter>();
 var csvReader = serviceProvider.GetRequiredService<ICsvReader>();
 var csvWriter = serviceProvider.GetRequiredService<ICsvWriter>();
 var logger = serviceProvider.GetRequiredService<ILogger>();
+var mPredicter = serviceProvider.GetRequiredService<IPredictM>();
 
-var dict = new Dictionary<float, string>();
 var testDict = new Dictionary<float, string>();
-
-dict.Add(3f, "01");
-dict.Add(3.5f, "001");
-dict.Add(5f, "0011");
-dict.Add(7f, "001");
-dict.Add(7.5f, "0001");
-dict.Add(9f, "000111");
-dict.Add(11f, "0001011101");
-dict.Add(13f, "000100111011");
-dict.Add(15f, "0001");
-dict.Add(15.5f, "00001");
-dict.Add(17f, "11100001");
-dict.Add(19f, "101011110010100001");
-dict.Add(19.5f, "101001000001");
-dict.Add(21f, "100001");
-dict.Add(23f, "01100100001");
-dict.Add(31f, "00001");
-
 
 testDict.Add(3f, "01");
 testDict.Add(5f, "0011");
-//testDict.Add(7f, "001");
-//testDict.Add(9f, "000111");
-//testDict.Add(11f, "0001011101");
-//testDict.Add(13f, "000100111011");
-//testDict.Add(15f, "0001");
-//testDict.Add(17f, "11100001");
-//testDict.Add(19.5f, "101001000001");
-//testDict.Add(23f, "01100100001");
-
-//var temperatureFloats = csvReader.ReadCsvColumn("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
-//var humidityFloats = csvReader.ReadCsvColumnHumidity("C:\\Users\\mongl\\source\\repos\\MastersThesisPOC\\MastersThesisPOC\\melbourne-smart_city.csv");
-//var voltageFloats = csvReader.ReadCsvColumnVoltage("C:\\Users\\mongl\\OneDrive\\Skrivebord\\household_power_consumption.csv");
-//var giFloats = csvReader.ReadCsvColumnGI("C:\\Users\\mongl\\OneDrive\\Skrivebord\\household_power_consumption.csv");
-
-//var voltageExponent7 = voltageFloats.Where(x => ExtractExponent(x) == 7).ToList();
-
-/*// Splitting the dataset based on exponent
-var exponent2List = temperatureFloats.Where(x => ExtractExponent(x) == 2).ToList();
-var exponent3List = temperatureFloats.Where(x => ExtractExponent(x) == 3).ToList();
-var exponent4List = temperatureFloats.Where(x => ExtractExponent(x) == 4).ToList();
-var exponent5List = temperatureFloats.Where(x => ExtractExponent(x) == 5).ToList();
-
-// Splitting the dataset based on exponent
-var humidityexponentList0 = humidityFloats.Where(x => ExtractExponent(x) == 0).ToList();
-var humidityexponentList1 = humidityFloats.Where(x => ExtractExponent(x) == 1).ToList();
-var humidityexponentList2 = humidityFloats.Where(x => ExtractExponent(x) == 2).ToList();
-var humidityexponentList3 = humidityFloats.Where(x => ExtractExponent(x) == 3).ToList();
-var humidityexponentList4 = humidityFloats.Where(x => ExtractExponent(x) == 4).ToList();
-var humidityexponentList5 = humidityFloats.Where(x => ExtractExponent(x) == 5).ToList();
-var humidityexponentList6 = humidityFloats.Where(x => ExtractExponent(x) == 6).ToList();
+testDict.Add(7f, "001");
+testDict.Add(9f, "000111");
+testDict.Add(11f, "0001011101");
+testDict.Add(13f, "000100111011");
+testDict.Add(15f, "0001");
+testDict.Add(17f, "11100001");
+testDict.Add(19f, "101011110010100001");
+testDict.Add(19.5f, "101001000001");
+testDict.Add(23f, "01100100001");
 
 
-List<List<float>> listOfListsTemperature = new List<List<float>>() { exponent2List, exponent3List, exponent4List, exponent5List };
-List<List<float>> listOfListsHumidity = new List<List<float>>() { humidityexponentList0, humidityexponentList1, humidityexponentList2, humidityexponentList3, humidityexponentList4, humidityexponentList5, humidityexponentList6};
-*/
-var globalActivePower = csvReader.ReadCsvColumnGlobalActivePower("C:\\Users\\mongl\\OneDrive\\Skrivebord\\household_power_consumption.csv");
-var globalActivePower3 = globalActivePower.Where(n => n >= 3.0f && n < 4.0f).ToList();
-var currentDataSet = globalActivePower3;
-var name = "Global_active_power";
+var voltageFloats = csvReader.ReadCsvColumnVoltage("C:\\Users\\mongl\\OneDrive\\Skrivebord\\household_power_consumption.csv");
+var pondTempFloats = csvReader.ReadCsvColumPondTemp("C:\\Users\\mongl\\OneDrive\\Skrivebord\\IoTpond1.csv");
+var humidityFloats = csvReader.ReadCsvColumnHumidityReal("C:\\Users\\mongl\\OneDrive\\Skrivebord\\humidity.csv");
+
+var currentDataSet = pondTempFloats;
+//var currentDataSet = voltageFloats;
+//var currentDataSet = humidityFloats;
+
+var prediction = mPredicter.PredictBestM(currentDataSet);
+
+foreach (var (key, value) in prediction)
+{
+    Console.WriteLine($"Prediction is: {key},{value}");
+}
+
+var listOfBestPrediction = mPredicter.DetermineBestM(prediction, testDict);
+
+foreach (var (determinedM, valueOfDeterminedM, score) in listOfBestPrediction) 
+{ 
+    Console.WriteLine($"Prediction of best M is: {determinedM}, {valueOfDeterminedM}, Score: {score}");
+    logger.Information($"Prediction of best M is: {determinedM}, {valueOfDeterminedM}, Score: {score}");
+}
+
+//var bestPrediction = listOfBestPrediction.Take(1);
+IEnumerable<(float, string, int)> bestPrediction = new List<(float, string, int)>
+{
+    (5f, "1100", 0)
+};
+
+
+var name = "Temperature";
 
 logger.Information($"Max value of the dataset is: {currentDataSet.Max()}");
 logger.Information($"Min value of the dataset is: {currentDataSet.Min()}");
+logger.Information($"Avg of the dataset is: {currentDataSet.Average()}");
 var resultFromProgram = new List<float>();
 
 var stopWatch = new Stopwatch();
-
-foreach (var (M, pattern) in testDict)
+long totalMemory = GC.GetTotalMemory(false);
+Console.WriteLine($"Total Memory Used Before(Bytes): {totalMemory}");
+foreach (var (M, pattern, score) in bestPrediction)
 {
-     for (int i = 2; i < 3; i++)
+     for (int i = 2; i < 18; i++)
      {
+        var epsilonList = new [] { 0.01f, 0.025f, 0.05f, 0.075f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f, 1.5f, 2.0f, 5f, 10f};
+        //var epsilonList = new[] {1.0f, 2.0f, 5f, 10f, 15f, 20f, 25f, 30f, 35f, 40f, 45f, 50f, 75f, 100f };
+        var substituteIndex = i;
+        logger.Information($"Substitution Index: {i}");
         stopWatch.Start();
-
-        resultFromProgram = executer.RunProgram(M, pattern, currentDataSet, i, 100);
-
+        resultFromProgram = executer.RunProgramFastNoiseBeforePattern(M, pattern, currentDataSet, 0, 20, 1.0f, 5.0f, i);
+        //resultFromProgram = executer.RunProgramOnlyPrivacy(M, pattern, currentDataSet, i, 20, 1f, 5f);
 
         stopWatch.Stop();
 
@@ -153,6 +144,9 @@ foreach (var (M, pattern) in testDict)
         stopWatch.Stop();
         logger.Information($"Time Elapsed of GD Compression (s): {stopWatch.Elapsed.TotalSeconds}");
         stopWatch.Reset();
+        long totalMemory2 = GC.GetTotalMemory(false);
+        Console.WriteLine($"Total Memory Used After(Bytes): {totalMemory2}");
+        logger.Information($"Memory used in Bytes: {totalMemory2-totalMemory}");
         logger.Information($"___________________________________________________________________________");
         Serilog.Log.CloseAndFlush();
     }

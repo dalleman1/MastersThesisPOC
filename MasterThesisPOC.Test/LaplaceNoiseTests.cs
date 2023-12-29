@@ -42,5 +42,24 @@ namespace MasterThesisPOC.Test
             Assert.IsTrue(outlierPercentage <= 1.0);
         }
 
+
+        [Test]
+        public void PrivacyTest()
+        {
+            float epsilon = 1.0f;
+            float senstivity = 5.0f;
+            float x = 25.0f;
+            float y = 24.5f;
+
+
+            for (int i = 0; i < 1000; i++)
+            {
+                var resx = uut.GenerateNoiseCentered(x, epsilon, senstivity);
+                var resy = uut.GenerateNoiseCentered(y, epsilon, senstivity);
+                Console.WriteLine($"xtilde: {resx}");
+                Console.WriteLine($"ytilde: {resx}");
+            }
+        }
+
     }
 }
